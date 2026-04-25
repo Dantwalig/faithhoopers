@@ -1,0 +1,66 @@
+# ===========================
+# Dependencies
+# ===========================
+node_modules/
+.pnp
+.pnp.js
+
+# ===========================
+# Next.js
+# ===========================
+.next/
+out/
+build/
+
+# ===========================
+# Environment Variables
+# ===========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Keep .env.example (committed as a template)
+!.env.example
+
+# ===========================
+# Prisma
+# ===========================
+# Generated client (regenerated via `prisma generate`)
+node_modules/.prisma/
+# Local SQLite database files (if using SQLite)
+*.db
+*.db-journal
+*.sqlite
+*.sqlite-journal
+
+# ===========================
+# TypeScript
+# ===========================
+*.tsbuildinfo
+next-env.d.ts
+
+# ===========================
+# OS & Editor
+# ===========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ===========================
+# Logs
+# ===========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ===========================
+# Misc
+# ===========================
+.vercel
+.turbo
+coverage/

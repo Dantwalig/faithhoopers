@@ -1,0 +1,156 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  COACH
+  PLAYER
+  PARENT
+}
+
+enum SessionType {
+  TRAINING
+  GAME
+  BIBLE_STUDY
+  DEVOTIONAL
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  role          Role      @default(PLAYER)
+  phone         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  player        Player?
+  coach         Coach?
+  parent        Parent?
+  sentMessages  Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  @@map("users")
+}
+
+model Player {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  jerseyNumber  Int?
+  position      String?
+  dateOfBirth   DateTime?
+  parentId      String?
+  parent        Parent?   @relation(fields: [parentId], references: [id])
+
+  attendances   Attendance[]
+  createdAt     DateTime  @default(now())
+
+  @@map("players")
+}
+
+model Coach {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty     String?   // e.g. "Defense", "Offense", "Conditioning"
+  createdAt     DateTime  @default(now())
+
+  sessions      Session[] @relation("CoachSessions")
+
+  @@map("coaches")
+}
+
+model Parent {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  children      Player[]
+  createdAt     DateTime  @default(now())
+
+  @@map("parents")
+}
+
+model Session {
+  id            String      @id @default(cuid())
+  title         String
+  type          SessionType
+  description   String?
+  location      String?
+  startTime     DateTime
+  endTime       DateTime
+  coachId       String?
+  coach         Coach?      @relation("CoachSessions", fields: [coachId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  attendances   Attendance[]
+
+  @@map("sessions")
+}
+
+model Attendance {
+  id          String    @id @default(cuid())
+  playerId    String
+  player      Player    @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  sessionId   String
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  present     Boolean   @default(false)
+  markedAt    DateTime  @default(now())
+  notes       String?
+
+  @@unique([playerId, sessionId])
+  @@map("attendance")
+}
+
+model Devotional {
+  id            String    @id @default(cuid())
+  title         String
+  weekTheme     String
+  bibleReference String  // e.g. "John 3:16"
+  bibleText     String   // fetched from API or manually entered
+  commentary    String   // admin-written reflection
+  application   String?  // practical takeaway
+  publishedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@map("devotionals")
+}
+
+model Announcement {
+  id          String    @id @default(cuid())
+  title       String
+  body        String
+  urgent      Boolean   @default(false)
+  targetRoles Role[]    // which roles can see this
+  publishedAt DateTime  @default(now())
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("announcements")
+}
+
+model Message {
+  id          String    @id @default(cuid())
+  senderId    String
+  sender      User      @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  String?   // null = broadcast
+  receiver    User?     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  subject     String?
+  body        String
+  isBroadcast Boolean   @default(false)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("messages")
+}
