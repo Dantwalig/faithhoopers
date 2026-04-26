@@ -34,7 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-brand-black flex items-center justify-center px-4">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-court-500 to-court-400"/>
 
       <div className="w-full max-w-md">
@@ -51,7 +51,7 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <div className="bg-ink-800 rounded-3xl border border-ink-700 p-8">
+        <div className="bg-brand-coal rounded-3xl border border-white/5 p-8">
           <h1 className="font-display text-2xl font-bold text-white mb-1">Welcome back</h1>
           <p className="text-ink-400 text-sm mb-6">Sign in to your camp account</p>
 
@@ -63,26 +63,26 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="label text-ink-300" htmlFor="email">Email address</label>
+              <label className="label text-white/60" htmlFor="email">Email address</label>
               <input
                 id="email"
                 type="email"
                 required
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500 focus:border-court-500 focus:ring-court-900"
+                className="input bg-brand-black border-white/10 text-white placeholder:text-white/30 focus:border-brand-orange focus:ring-brand-orange/20"
                 placeholder="you@example.com"
               />
             </div>
             <div>
-              <label className="label text-ink-300" htmlFor="password">Password</label>
+              <label className="label text-white/60" htmlFor="password">Password</label>
               <input
                 id="password"
                 type="password"
                 required
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500 focus:border-court-500 focus:ring-court-900"
+                className="input bg-brand-black border-white/10 text-white placeholder:text-white/30 focus:border-brand-orange focus:ring-brand-orange/20"
                 placeholder="••••••••"
               />
             </div>
@@ -96,16 +96,16 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink-400">
+          <p className="mt-6 text-center text-sm text-white/40">
             No account?{' '}
-            <Link href="/register" className="text-court-400 hover:text-court-300 font-medium">
+            <Link href="/register" className="text-brand-orange hover:text-court-400 font-medium">
               Register here
             </Link>
           </p>
 
           {/* Demo credentials hint */}
-          <div className="mt-6 rounded-xl bg-ink-900 border border-ink-700 p-4 text-xs text-ink-400 space-y-1">
-            <p className="font-medium text-ink-300 mb-2">Demo accounts (after seeding):</p>
+          <div className="mt-6 rounded-xl bg-brand-black border border-white/10 p-4 text-xs text-ink-400 space-y-1">
+            <p className="font-medium text-white/60 mb-2">Demo accounts (after seeding):</p>
             <p>Admin: admin@faithhoopers.com / admin123</p>
             <p>Coach: coach.james@faithhoopers.com / coach123</p>
             <p>Player: david.mukamana@faithhoopers.com / player123</p>

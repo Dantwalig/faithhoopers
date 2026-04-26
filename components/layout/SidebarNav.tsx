@@ -92,7 +92,7 @@ export function SidebarNav({ role, userName, userEmail }: Props) {
   }
 
   return (
-    <aside className="w-64 bg-ink-900 flex flex-col shrink-0 border-r border-ink-800">
+    <aside className="w-64 bg-brand-black flex flex-col shrink-0 border-r border-white/5">
       {/* Logo */}
       <div className="px-5 pt-6 pb-4">
         <div className="flex items-center gap-3">
@@ -119,8 +119,8 @@ export function SidebarNav({ role, userName, userEmail }: Props) {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-court-500 text-white'
-                  : 'text-ink-400 hover:bg-ink-800 hover:text-white'
+                  ? 'bg-brand-orange text-white'
+                  : 'text-white/40 hover:bg-brand-coal hover:text-white'
               }`}
             >
               <span className="shrink-0">{item.icon}</span>
@@ -131,8 +131,8 @@ export function SidebarNav({ role, userName, userEmail }: Props) {
       </nav>
 
       {/* User info + sign out */}
-      <div className="px-3 pb-5 border-t border-ink-800 pt-3">
-        <div className="px-3 py-3 rounded-xl bg-ink-800">
+      <div className="px-3 pb-5 border-t border-white/5 pt-3">
+        <div className="px-3 py-3 rounded-xl bg-brand-coal">
           <div className="flex items-center justify-between mb-1">
             <p className="text-sm font-medium text-white truncate">{userName}</p>
             <span className={`badge text-xs ${roleColor[role]}`}>{roleLabel[role]}</span>
@@ -140,7 +140,7 @@ export function SidebarNav({ role, userName, userEmail }: Props) {
           <p className="text-xs text-ink-500 truncate mb-3">{userEmail}</p>
           <button
             onClick={() => signOut({ callbackUrl: '/login' })}
-            className="w-full text-xs text-ink-400 hover:text-white hover:bg-ink-700 rounded-lg py-1.5 transition-colors"
+            className="w-full text-xs text-white/40 hover:text-white hover:bg-white/10 rounded-lg py-1.5 transition-colors"
           >
             Sign out
           </button>

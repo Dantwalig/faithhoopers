@@ -18,7 +18,7 @@ export function TopBar({ user }: Props) {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <header className="h-14 border-b border-ink-200 bg-white flex items-center px-6 shrink-0">
+    <header className="h-14 border-b border-ink-100 bg-white flex items-center px-6 shrink-0">
       <div className="flex-1">
         <p className="text-sm text-ink-500">
           {greeting}, <span className="font-medium text-ink-800">{user.name}</span>

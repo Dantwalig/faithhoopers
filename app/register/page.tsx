@@ -47,7 +47,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-900 flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-brand-black flex items-center justify-center px-4 py-12">
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-court-500 to-court-400"/>
 
       <div className="w-full max-w-lg">
@@ -63,7 +63,7 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        <div className="bg-ink-800 rounded-3xl border border-ink-700 p-8">
+        <div className="bg-brand-coal rounded-3xl border border-white/5 p-8">
           <h1 className="font-display text-2xl font-bold text-white mb-1">Create account</h1>
           <p className="text-ink-400 text-sm mb-6">Join the faith-based basketball platform</p>
 
@@ -76,13 +76,13 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Role selector */}
             <div>
-              <label className="label text-ink-300">I am a…</label>
+              <label className="label text-white/70">I am a…</label>
               <div className="grid grid-cols-2 gap-2">
                 {(['PLAYER','PARENT','COACH'] as const).map(r => (
                   <label key={r} className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${
                     form.role === r
-                      ? 'border-court-500 bg-court-900/30 text-court-300'
-                      : 'border-ink-700 bg-ink-900 text-ink-400 hover:border-ink-600'
+                      ? 'border-brand-orange bg-brand-orange/10 text-brand-orange'
+                      : 'border-white/10 bg-brand-black text-white/40 hover:border-ink-600'
                   }`}>
                     <input
                       type="radio"
@@ -101,34 +101,34 @@ export default function RegisterPage() {
             {/* Core fields */}
             <div className="grid grid-cols-1 gap-4">
               <div>
-                <label className="label text-ink-300">Full name</label>
+                <label className="label text-white/70">Full name</label>
                 <input name="name" required value={form.name} onChange={handleChange}
-                  className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                  className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                   placeholder="Your full name"/>
               </div>
               <div>
-                <label className="label text-ink-300">Email address</label>
+                <label className="label text-white/70">Email address</label>
                 <input name="email" type="email" required value={form.email} onChange={handleChange}
-                  className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                  className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                   placeholder="you@example.com"/>
               </div>
               <div>
-                <label className="label text-ink-300">Phone (optional)</label>
+                <label className="label text-white/70">Phone (optional)</label>
                 <input name="phone" type="tel" value={form.phone} onChange={handleChange}
-                  className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                  className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                   placeholder="+250 7xx xxx xxx"/>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="label text-ink-300">Password</label>
+                  <label className="label text-white/70">Password</label>
                   <input name="password" type="password" required value={form.password} onChange={handleChange}
-                    className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                     placeholder="Min 8 characters" minLength={8}/>
                 </div>
                 <div>
-                  <label className="label text-ink-300">Confirm</label>
+                  <label className="label text-white/70">Confirm</label>
                   <input name="confirmPassword" type="password" required value={form.confirmPassword} onChange={handleChange}
-                    className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                     placeholder="Repeat password"/>
                 </div>
               </div>
@@ -136,19 +136,19 @@ export default function RegisterPage() {
 
             {/* Player-specific fields */}
             {form.role === 'PLAYER' && (
-              <div className="rounded-xl border border-ink-700 p-4 space-y-4">
+              <div className="rounded-xl border border-white/10 p-4 space-y-4">
                 <p className="text-xs font-medium text-ink-400 uppercase tracking-wide">Player details</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-ink-300">Jersey #</label>
+                    <label className="label text-white/70">Jersey #</label>
                     <input name="jerseyNumber" type="number" value={form.jerseyNumber} onChange={handleChange}
-                      className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                       placeholder="e.g. 23" min={1} max={99}/>
                   </div>
                   <div>
-                    <label className="label text-ink-300">Position</label>
+                    <label className="label text-white/70">Position</label>
                     <input name="position" value={form.position} onChange={handleChange}
-                      className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                       placeholder="e.g. Point Guard"/>
                   </div>
                 </div>
@@ -156,13 +156,13 @@ export default function RegisterPage() {
                   <p className="text-xs font-medium text-ink-400 uppercase tracking-wide mb-3">Parent / Guardian</p>
                   <div className="space-y-3">
                     <input name="parentName" value={form.parentName} onChange={handleChange}
-                      className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                       placeholder="Parent full name"/>
                     <input name="parentEmail" type="email" value={form.parentEmail} onChange={handleChange}
-                      className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                       placeholder="Parent email"/>
                     <input name="parentPhone" value={form.parentPhone} onChange={handleChange}
-                      className="input bg-ink-900 border-ink-700 text-white placeholder:text-ink-500"
+                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                       placeholder="Parent phone"/>
                   </div>
                 </div>
@@ -175,9 +175,9 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink-400">
+          <p className="mt-6 text-center text-sm text-white/40">
             Already have an account?{' '}
-            <Link href="/login" className="text-court-400 hover:text-court-300 font-medium">Sign in</Link>
+            <Link href="/login" className="text-brand-orange hover:text-court-400 font-medium">Sign in</Link>
           </p>
         </div>
       </div>

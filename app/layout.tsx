@@ -1,28 +1,40 @@
 import type { Metadata } from 'next'
-import { Inter, Syne } from 'next/font/google'
+import { Barlow, Barlow_Condensed, Space_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 
-const inter = Inter({
+const barlow = Barlow({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-barlow',
+  weight: ['400', '500', '600', '700'],
 })
 
-const syne = Syne({
+const barlowCondensed = Barlow_Condensed({
   subsets: ['latin'],
-  variable: '--font-syne',
-  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-barlow-condensed',
+  weight: ['400', '500', '600', '700', '800', '900'],
+})
+
+const spaceMono = Space_Mono({
+  subsets: ['latin'],
+  variable: '--font-space-mono',
+  weight: ['400', '700'],
 })
 
 export const metadata: Metadata = {
-  title: 'Faith Hoopers',
-  description: 'Faith-based basketball faith-based basketball platform',
+  title: 'Faith Hoopers Camp',
+  description: 'Where Faith Meets Basketball — Kigali, Rwanda',
+  openGraph: {
+    title: 'Faith Hoopers Camp',
+    description: 'Where Faith Meets Basketball',
+    images: ['/logo.jpg'],
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${syne.variable}`}>
-      <body className="bg-ink-50 font-sans text-ink-800 antialiased">
+    <html lang="en" className={`${barlow.variable} ${barlowCondensed.variable} ${spaceMono.variable}`}>
+      <body className="bg-brand-cream font-sans text-brand-coal antialiased">
         <Providers>{children}</Providers>
       </body>
     </html>
