@@ -97,7 +97,7 @@ export default async function HomePage() {
         <div className="relative z-10 max-w-3xl mx-auto">
           <p className="font-mono text-white/60 text-xs tracking-ultra uppercase mb-5">Anchor Verse</p>
           <p className="font-display font-black text-2xl md:text-4xl text-white uppercase leading-tight mb-4">
-            "I can do all this through him who gives me strength."
+            "I can do all this through Christ who strengthens me."
           </p>
           <p className="font-mono text-white/70 text-sm tracking-widest uppercase">— Philippians 4:13</p>
         </div>
