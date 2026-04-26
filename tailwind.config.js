@@ -12,7 +12,6 @@ module.exports = {
         mono:    ['var(--font-space-mono)', 'monospace'],
       },
       colors: {
-        // Brand — pulled from logo charcoal + orange court energy
         brand: {
           black:  '#1a1a1a',
           coal:   '#2e2e2e',
@@ -24,7 +23,6 @@ module.exports = {
           'orange-light': '#f97316',
           'orange-pale':  '#fff0e6',
         },
-        // Keep existing court/spirit/ink for dashboard
         court: {
           50: '#fff7ed', 100: '#ffedd5', 200: '#fed7aa',
           400: '#fb923c', 500: '#f97316', 600: '#ea580c',
@@ -36,8 +34,8 @@ module.exports = {
         },
         ink: {
           50: '#f8f7f4', 100: '#f0ede7', 200: '#e2ddd4',
-          400: '#a09890', 600: '#6b6560', 700: '#4f4a46',
-          800: '#312e2b', 900: '#1c1a18',
+          300: '#c4bdb5', 400: '#a09890', 600: '#6b6560',
+          700: '#4f4a46', 800: '#312e2b', 900: '#1c1a18',
         },
       },
       fontSize: {
