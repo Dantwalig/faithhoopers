@@ -77,6 +77,14 @@ model Player {
   parentId      String?
   parent        Parent?   @relation(fields: [parentId], references: [id])
 
+  // Which coach/facilitator this player is assigned to (set by an admin).
+  // Coaches/facilitators only see players assigned to them; a player can
+  // be assigned to one of each, both, or neither.
+  coachId       String?
+  coach         Coach?       @relation("CoachPlayers", fields: [coachId], references: [id])
+  facilitatorId String?
+  facilitator   Facilitator? @relation("FacilitatorPlayers", fields: [facilitatorId], references: [id])
+
   attendances   Attendance[]
   createdAt     DateTime  @default(now())
 
@@ -92,6 +100,7 @@ model Coach {
   createdAt     DateTime  @default(now())
 
   sessions      Session[] @relation("CoachSessions")
+  players       Player[]  @relation("CoachPlayers")
 
   @@map("coaches")
 }
@@ -103,6 +112,8 @@ model Facilitator {
   specialty     String?
   gender        Gender?
   createdAt     DateTime  @default(now())
+
+  players       Player[]  @relation("FacilitatorPlayers")
 
   @@map("facilitators")
 }

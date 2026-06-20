@@ -26,7 +26,14 @@ export default async function CoachDashboard() {
     },
   })
 
-  const playerCount = await prisma.player.count()
+  const userRole = (session.user as { role: Role }).role
+  const playerCount = userRole === Role.FACILITATOR
+    ? await prisma.player.count({
+        where: { facilitator: { is: { userId } } },
+      })
+    : await prisma.player.count({
+        where: { coach: { is: { userId } } },
+      })
 
   const broadcastMessages = await prisma.message.findMany({
     where: { isBroadcast: true, senderId: userId },
@@ -56,7 +63,7 @@ export default async function CoachDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Players"          value={playerCount}                 accent="orange" />
+        <StatCard label="Players"          value={playerCount}                 accent="orange" sub="Assigned to you" />
         <StatCard label="My Sessions"      value={coachSessions.length}        accent="green"  sub="Upcoming" />
         <StatCard label="Today's Sessions" value={todaySessions}               accent="blue" />
         <StatCard label="Broadcasts Sent"  value={broadcastMessages.length}    accent="purple" sub="Your messages" />

@@ -2,12 +2,15 @@ import { requireRole } from '@/lib/auth/helpers'
 import { prisma } from '@/lib/db/prisma'
 import { Role } from '@/lib/enums'
 import Link from 'next/link'
+import { AssignmentCell } from '@/components/admin/AssignmentCell'
 
 interface PlayerRow {
   id: string; name: string; email: string; phone: string | null
   player: {
+    id: string
     jerseyNumber: number | null; position: string | null
     gender: string | null; age: number | null; medicalNotes: string | null
+    coachId: string | null; facilitatorId: string | null
     attendances: { present: boolean }[]
     _count: { attendances: number }
     parent: {
@@ -20,24 +23,43 @@ interface PlayerRow {
 export default async function AdminPlayersPage() {
   await requireRole(Role.ADMIN)
 
-  const players = await prisma.user.findMany({
-    where: { role: Role.PLAYER },
-    include: {
-      player: {
-        include: {
-          parent: {
-            include: {
-              user: { select: { name: true, email: true } },
-              _count: { select: { children: true } },
+  const [players, coachUsers, facilitatorUsers] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: Role.PLAYER },
+      include: {
+        player: {
+          include: {
+            parent: {
+              include: {
+                user: { select: { name: true, email: true } },
+                _count: { select: { children: true } },
+              },
             },
+            attendances: { where: { present: true } },
+            _count: { select: { attendances: true } },
           },
-          attendances: { where: { present: true } },
-          _count: { select: { attendances: true } },
         },
       },
-    },
-    orderBy: { name: 'asc' },
-  }) as PlayerRow[]
+      orderBy: { name: 'asc' },
+    }) as Promise<PlayerRow[]>,
+    prisma.user.findMany({
+      where: { role: Role.COACH },
+      select: { name: true, coach: { select: { id: true } } },
+      orderBy: { name: 'asc' },
+    }),
+    prisma.user.findMany({
+      where: { role: Role.FACILITATOR },
+      select: { name: true, facilitator: { select: { id: true } } },
+      orderBy: { name: 'asc' },
+    }),
+  ])
+
+  const coachOptions = coachUsers
+    .filter(c => c.coach)
+    .map(c => ({ id: c.coach!.id, name: c.name }))
+  const facilitatorOptions = facilitatorUsers
+    .filter(f => f.facilitator)
+    .map(f => ({ id: f.facilitator!.id, name: f.name }))
 
   return (
     <div className="space-y-6">
@@ -64,6 +86,7 @@ export default async function AdminPlayersPage() {
                 <th className="text-left px-6 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Player</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Age / Gender</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Parent / Household</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Assigned to</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Attendance</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Phone</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Health</th>
@@ -104,6 +127,17 @@ export default async function AdminPlayersPage() {
                           </p>
                           <p className="text-xs text-ink-400">{p.player.parent.user.email}</p>
                         </div>
+                      ) : <span className="text-ink-400">—</span>}
+                    </td>
+                    <td className="px-4 py-4">
+                      {p.player ? (
+                        <AssignmentCell
+                          playerId={p.player.id}
+                          coachId={p.player.coachId}
+                          facilitatorId={p.player.facilitatorId}
+                          coaches={coachOptions}
+                          facilitators={facilitatorOptions}
+                        />
                       ) : <span className="text-ink-400">—</span>}
                     </td>
                     <td className="px-4 py-4 text-center">

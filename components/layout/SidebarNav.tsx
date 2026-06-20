@@ -32,6 +32,9 @@ function GridIcon() {
 function ClipboardIcon() {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
 }
+function IdCardIcon() {
+  return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><path d="M5 16c0-1.5 1.5-2.5 3-2.5s3 1 3 2.5"/><line x1="14" y1="9" x2="19" y2="9"/><line x1="14" y1="13" x2="19" y2="13"/></svg>
+}
 
 function navItemsForRole(role: Role): NavItem[] {
   const base = (role === Role.FACILITATOR ? '/dashboard/coach' : `/dashboard/${role.toLowerCase()}`)
@@ -49,6 +52,7 @@ function navItemsForRole(role: Role): NavItem[] {
       { label: 'Dashboard',      href: base,                       icon: <GridIcon /> },
       { label: 'Schedule',       href: `${base}/schedule`,         icon: <CalendarIcon /> },
       { label: 'Players',        href: `${base}/players`,          icon: <UsersIcon /> },
+      { label: 'Users',          href: `${base}/users`,            icon: <IdCardIcon /> },
       { label: 'Attendance',     href: `${base}/attendance`,       icon: <ClipboardIcon /> },
       { label: 'Devotionals',    href: `${base}/devotionals`,      icon: <BookIcon /> },
       { label: 'Announcements',  href: `${base}/announcements`,    icon: <BellIcon /> },

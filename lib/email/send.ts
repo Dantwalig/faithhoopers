@@ -1,14 +1,17 @@
-// Email sender using Nodemailer + Gmail SMTP.
+// Minimal email sender built on Resend's REST API (https://resend.com).
+// We talk to it with a plain fetch call instead of adding their SDK as a
+// dependency — one less package to install/keep updated.
 //
-// Setup:
-//   1. Enable 2-Step Verification on your Google account
-//   2. Go to myaccount.google.com/apppasswords and generate an App Password
-//   3. Set GMAIL_USER and GMAIL_PASS in your environment
+// Setup (production):
+//   1. Create a free account at https://resend.com
+//   2. Verify a sending domain (or use their shared onboarding domain for testing)
+//   3. Create an API key and set RESEND_API_KEY in your environment
+//   4. Set EMAIL_FROM to an address on your verified domain, e.g.
+//      EMAIL_FROM="Faith Hoopers <hello@faithhoopers.com>"
 //
-// If GMAIL_USER or GMAIL_PASS is not set, sendEmail() logs to the console
-// instead of throwing — signups will still work locally without credentials.
-
-import nodemailer from 'nodemailer'
+// If RESEND_API_KEY is not set, sendEmail() logs to the console instead of
+// throwing — this keeps local dev and CI builds working without an API key,
+// but it means real emails will NOT go out until the key is configured.
 
 interface SendEmailInput {
   to: string
@@ -16,26 +19,33 @@ interface SendEmailInput {
   html: string
 }
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-})
-
 export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<{ sent: boolean }> {
-  const from = `Faith Hoopers <${process.env.GMAIL_USER}>`
+  const apiKey = process.env.RESEND_API_KEY
+  const from = process.env.EMAIL_FROM || 'Faith Hoopers <onboarding@resend.dev>'
 
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
+  if (!apiKey) {
     console.warn(
-      `[email] GMAIL_USER or GMAIL_PASS not set — skipping send. Would have emailed "${subject}" to ${to}.`
+      `[email] RESEND_API_KEY not set — skipping send. Would have emailed "${subject}" to ${to}.`
     )
     return { sent: false }
   }
 
   try {
-    await transporter.sendMail({ from, to, subject, html })
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ from, to, subject, html }),
+    })
+
+    if (!res.ok) {
+      const text = await res.text()
+      console.error(`[email] Resend API error (${res.status}):`, text)
+      return { sent: false }
+    }
+
     return { sent: true }
   } catch (err) {
     console.error('[email] Failed to send:', err)
