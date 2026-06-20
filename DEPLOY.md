@@ -40,14 +40,18 @@ You need Node.js installed to push the database schema.
    - **Database password:** create a strong password — write it down, you'll need it
    - **Region:** `West EU (Ireland)` — closest to Rwanda
 4. Click **Create new project** — wait ~2 minutes for setup
-5. Once ready, go to the left sidebar → **Project Settings** (gear icon) → **Database**
-6. Scroll to **Connection string** → select the **URI** tab
-7. Copy the full connection string — it looks like:
-   ```
-   postgresql://postgres:[YOUR-PASSWORD]@db.abcdefghijk.supabase.co:5432/postgres
-   ```
-8. Replace `[YOUR-PASSWORD]` in the string with your actual password from step 3
-9. **Save this string** — you'll need it in Step 4 and Step 6
+5. Once ready, click the **Connect** button near the top of the project dashboard
+6. In the dialog, switch to the **ORMs** tab and select **Prisma** — Supabase shows you two connection strings, already filled in with your project's host:
+   - **Transaction pooler** (ends in `:6543`) — this is your `DATABASE_URL`
+   - **Direct connection** (ends in `:5432`) — this is your `DIRECT_URL`
+7. Copy both strings somewhere safe, then replace `[YOUR-PASSWORD]` in each with your actual database password from step 3
+8. To the end of the `:6543` string, add `&connection_limit=1` (right after the existing `?pgbouncer=true`) — this keeps each serverless function from hogging more than one pooled connection
+9. **Save both strings** — you'll need them in Step 4 and Step 6
+
+This project needs *both* strings, not just one: the app itself talks to the database through the
+pooled `:6543` connection at runtime (required on Vercel, since serverless functions can open many
+connections at once), but pushing the schema with Prisma needs the direct `:5432` connection — the
+pooled one alone makes `prisma db push` hang or time out.
 
 ---
 
@@ -80,11 +84,13 @@ Still in the terminal inside the `hoops` folder:
    ```
 2. Open `.env` in any text editor (Notepad, VS Code, etc.) and fill in your values:
    ```env
-   DATABASE_URL="postgresql://postgres:YOUR-PASSWORD@db.xxxxx.supabase.co:5432/postgres"
+   DATABASE_URL="postgresql://postgres.xxxxxxxx:YOUR-PASSWORD@aws-0-eu-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1"
+   DIRECT_URL="postgresql://postgres.xxxxxxxx:YOUR-PASSWORD@aws-0-eu-west-1.pooler.supabase.com:5432/postgres"
    NEXTAUTH_SECRET="paste-a-random-string-here"
    NEXTAUTH_URL="http://localhost:3000"
    BIBLE_API_KEY="get-free-key-at-scripture.api.bible"
    ```
+   Use the two strings you saved in Step 2 — `DATABASE_URL` is the `:6543` one, `DIRECT_URL` is the `:5432` one.
 
    > **Generating NEXTAUTH_SECRET:** Open your terminal and run:
    > - Mac/Linux: `openssl rand -base64 32`
@@ -102,7 +108,9 @@ Still in the terminal inside the `hoops` folder:
    ```bash
    npm run db:push
    ```
-   When prompted `Do you want to continue? › (y/N)` — type `y` and press Enter
+   When prompted `Do you want to continue? › (y/N)` — type `y` and press Enter. This step uses
+   `DIRECT_URL` automatically — if it hangs for more than a minute or times out, double check
+   you used the `:5432` string here and not the `:6543` one.
 6. Load demo data:
    ```bash
    npm run db:seed
@@ -164,7 +172,8 @@ without this set up, that email never sends and nobody can finish signing up.
 
    | Variable | Value |
    |---|---|
-   | `DATABASE_URL` | Your full Supabase connection string from Step 2 |
+   | `DATABASE_URL` | Your pooled (`:6543`) Supabase connection string from Step 2 |
+   | `DIRECT_URL` | Your direct (`:5432`) Supabase connection string from Step 2 |
    | `NEXTAUTH_SECRET` | The random string you generated in Step 4 |
    | `NEXTAUTH_URL` | Leave **blank for now** — you'll add it after first deploy |
    | `BIBLE_API_KEY` | Your api.bible key (or leave blank if skipping) |
@@ -267,7 +276,15 @@ To **remove the demo accounts** from production:
 → Go to Vercel → your project → **Functions** tab → click any error to see the log. Most likely a missing environment variable.
 
 **Database connection error**
-→ Double-check your `DATABASE_URL` in Vercel environment variables. Make sure you replaced `[YOUR-PASSWORD]` with your actual password.
+→ Double-check `DATABASE_URL` and `DIRECT_URL` in Vercel environment variables — make sure you
+replaced `[YOUR-PASSWORD]` with your actual password in both, and that you didn't accidentally
+paste the same string into both fields (they need different ports: `:6543` for `DATABASE_URL`,
+`:5432` for `DIRECT_URL`).
+
+**`npm run db:push` hangs or times out**
+→ This means `DIRECT_URL` is missing, wrong, or pointed at the `:6543` pooled string instead of
+the `:5432` direct one. Supabase's pooler doesn't support the kind of connection `prisma db push`
+needs — only the direct connection does.
 
 **`NEXTAUTH_URL` mismatch error**
 → Make sure `NEXTAUTH_URL` in Vercel matches your exact Vercel URL (no trailing slash).
