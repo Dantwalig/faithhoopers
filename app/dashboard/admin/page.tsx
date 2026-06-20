@@ -4,6 +4,7 @@ import { Role, SessionType } from '@/lib/enums'
 import { StatCard } from '@/components/ui/StatCard'
 import { SessionTypeBadge } from '@/components/ui/SessionTypeBadge'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SessionRow {
   id: string; title: string; type: SessionType; startTime: Date
@@ -17,7 +18,7 @@ export default async function AdminDashboard() {
   const [totalPlayerCount, coachCount, upcomingSessions, recentAnnouncements] =
     await Promise.all([
       prisma.user.count({ where: { role: Role.PLAYER } }),
-      prisma.user.count({ where: { role: Role.COACH } }),
+      prisma.user.count({ where: { role: { in: [Role.COACH, Role.FACILITATOR] } } }),
       prisma.session.findMany({
         where: { startTime: { gte: new Date() } },
         include: { coach: { include: { user: { select: { name: true } } } } },
@@ -34,14 +35,20 @@ export default async function AdminDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-ink-900">Admin Dashboard</h1>
-        <p className="text-ink-500 text-sm mt-1">Full overview of camp operations</p>
+      {/* Photo banner */}
+      <div className="relative h-36 md:h-44 rounded-2xl overflow-hidden border border-ink-100">
+        <Image src="/gallery/gallery-community-steps.jpg" alt=""
+          fill className="object-cover object-[50%_30%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-coal/90 via-brand-coal/60 to-transparent" />
+        <div className="relative h-full flex flex-col justify-center px-7">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-white">Admin Dashboard</h1>
+          <p className="text-white/60 text-sm mt-1">Full overview of camp operations</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total Players"     value={totalPlayerCount}        accent="orange" sub="Registered this camp" />
-        <StatCard label="Coaches"           value={coachCount}              accent="green"  sub="Active staff" />
+        <StatCard label="Coaching Staff"    value={coachCount}              accent="green"  sub="Coaches & facilitators" />
         <StatCard label="Upcoming Sessions" value={upcomingSessions.length} accent="blue"   sub="Next 30 days" />
         <StatCard label="Attendance Rate"   value={`${attendanceRate}%`}    accent="purple" sub="All-time average" />
       </div>

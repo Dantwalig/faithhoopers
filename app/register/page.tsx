@@ -3,13 +3,16 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
+
+const AGE_OPTIONS = Array.from({ length: 19 - 13 + 1 }, (_, i) => 13 + i)
 
 export default function RegisterPage() {
   const [form, setForm] = useState({
     name: '', email: '', password: '', confirmPassword: '',
     role: 'PLAYER', phone: '',
     // Player-specific
-    jerseyNumber: '', position: '',
+    gender: '', age: '', medicalNotes: '',
     // Parent contact (for players)
     parentName: '', parentEmail: '', parentPhone: '',
   })
@@ -17,7 +20,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
   }
 
@@ -43,14 +46,16 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/login?registered=1')
+    router.push(`/verify?email=${encodeURIComponent(form.email)}`)
   }
 
   return (
-    <div className="min-h-screen bg-brand-black flex items-center justify-center px-4 py-12">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-court-500 to-court-400"/>
+    <div className="relative min-h-screen bg-brand-black flex items-center justify-center px-4 py-12 overflow-hidden">
+      <Image src="/gallery/gallery-helpside.jpg" alt="" fill className="object-cover opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-brand-black/90 via-brand-black/95 to-brand-black" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-court-500 to-court-400 z-10"/>
 
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-lg relative z-10">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-xl bg-court-500 flex items-center justify-center">
@@ -78,7 +83,7 @@ export default function RegisterPage() {
             <div>
               <label className="label text-white/70">I am a…</label>
               <div className="grid grid-cols-2 gap-2">
-                {(['PLAYER','PARENT','COACH'] as const).map(r => (
+                {(['PLAYER','PARENT','COACH','FACILITATOR'] as const).map(r => (
                   <label key={r} className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${
                     form.role === r
                       ? 'border-brand-orange bg-brand-orange/10 text-brand-orange'
@@ -140,20 +145,36 @@ export default function RegisterPage() {
                 <p className="text-xs font-medium text-ink-400 uppercase tracking-wide">Player details</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="label text-white/70">Jersey #</label>
-                    <input name="jerseyNumber" type="number" value={form.jerseyNumber} onChange={handleChange}
-                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                      placeholder="e.g. 23" min={1} max={99}/>
+                    <label className="label text-white/70">Gender</label>
+                    <select name="gender" required value={form.gender} onChange={handleChange}
+                      className="input bg-brand-black border-white/10 text-white">
+                      <option value="" disabled>Select…</option>
+                      <option value="MALE">Boy</option>
+                      <option value="FEMALE">Girl</option>
+                    </select>
                   </div>
                   <div>
-                    <label className="label text-white/70">Position</label>
-                    <input name="position" value={form.position} onChange={handleChange}
-                      className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                      placeholder="e.g. Point Guard"/>
+                    <label className="label text-white/70">Age</label>
+                    <select name="age" required value={form.age} onChange={handleChange}
+                      className="input bg-brand-black border-white/10 text-white">
+                      <option value="" disabled>Select…</option>
+                      {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
                   </div>
+                </div>
+                <div>
+                  <label className="label text-white/70">Pre-existing health conditions or injuries (optional)</label>
+                  <textarea name="medicalNotes" value={form.medicalNotes} onChange={handleChange} rows={3}
+                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30 resize-none"
+                    placeholder="e.g. asthma, previous ankle injury, allergies — anything coaches should know"/>
+                  <p className="text-xs text-ink-500 mt-1">Only visible to camp coaches and admins.</p>
                 </div>
                 <div className="pt-2 border-t border-ink-700">
                   <p className="text-xs font-medium text-ink-400 uppercase tracking-wide mb-3">Parent / Guardian</p>
+                  <p className="text-xs text-ink-500 mb-3">
+                    Add your parent's details and we'll set up their account too — they'll get an email to verify and activate it.
+                    If a sibling registers with the same parent email, they'll automatically be linked to the same parent account.
+                  </p>
                   <div className="space-y-3">
                     <input name="parentName" value={form.parentName} onChange={handleChange}
                       className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"

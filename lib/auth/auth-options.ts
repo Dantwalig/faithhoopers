@@ -31,6 +31,13 @@ export const authOptions: NextAuthOptions = {
         const isValid = await bcrypt.compare(credentials.password, user.password)
         if (!isValid) return null
 
+        if (!user.passwordSet) {
+          throw new Error('NEEDS_PASSWORD')
+        }
+        if (!user.emailVerified) {
+          throw new Error('UNVERIFIED')
+        }
+
         return {
           id: user.id,
           name: user.name,

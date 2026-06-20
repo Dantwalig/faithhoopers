@@ -24,10 +24,11 @@ export async function requireRole(...roles: Role[]) {
 
 export function dashboardPath(role: Role): string {
   switch (role) {
-    case Role.ADMIN:  return '/dashboard/admin'
-    case Role.COACH:  return '/dashboard/coach'
-    case Role.PLAYER: return '/dashboard/player'
-    case Role.PARENT: return '/dashboard/parent'
-    default:          return '/dashboard'
+    case Role.ADMIN:       return '/dashboard/admin'
+    case Role.COACH:       return '/dashboard/coach'
+    case Role.FACILITATOR: return '/dashboard/coach'
+    case Role.PLAYER:      return '/dashboard/player'
+    case Role.PARENT:      return '/dashboard/parent'
+    default:                return '/dashboard'
   }
 }

@@ -32,6 +32,10 @@ export default async function HomePage() {
 
       {/* ── HERO ── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-20">
+        {/* Background photo */}
+        <Image src="/gallery/hero-drive.jpg" alt="" fill priority
+          className="object-cover object-[50%_30%]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-brand-black/95 via-brand-black/75 to-brand-black" />
         {/* Grid texture */}
         <div className="absolute inset-0 opacity-[0.03]"
           style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
@@ -179,17 +183,14 @@ export default async function HomePage() {
       <section className="bg-brand-cream text-brand-black py-28 px-6 md:px-12">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-            {/* Logo display */}
+            {/* Photo display */}
             <div className="flex justify-center order-2 md:order-1">
-              <div className="relative">
+              <div className="relative w-full max-w-sm">
                 <div className="absolute inset-0 bg-brand-orange/15 rounded-3xl blur-3xl scale-110" />
-                <div className="relative bg-brand-black rounded-3xl p-10 shadow-2xl">
-                  <Image src="/logo.jpg" alt="Faith Hoopers Camp"
-                    width={260} height={260}
-                    className="grayscale invert opacity-90" />
-                  <p className="font-mono text-xs text-white/40 tracking-widest uppercase text-center mt-4">
-                    Where Faith Meets Basketball
-                  </p>
+                <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/10">
+                  <Image src="/gallery/gallery-community-steps.jpg"
+                    alt="Faith Hoopers community gathered together at the court"
+                    width={480} height={380} className="w-full h-72 object-cover object-top" />
                 </div>
               </div>
             </div>
@@ -249,9 +250,17 @@ export default async function HomePage() {
               </div>
             </div>
 
-            {/* Founder card */}
-            <div className="flex justify-center md:justify-end">
-              <div className="bg-brand-coal rounded-3xl p-8 border border-white/5 max-w-sm w-full relative">
+            {/* Founder card + action photo */}
+            <div className="flex flex-col gap-4 justify-end">
+              {/* Action photo */}
+              <div className="relative rounded-2xl overflow-hidden h-44 border border-white/5 shadow-lg">
+                <Image src="/gallery/gallery-team-huddle.jpg"
+                  alt="Faith Hoopers players and coaches on the court"
+                  fill className="object-cover object-[50%_40%]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+
+              <div className="bg-brand-coal rounded-3xl p-8 border border-white/5 relative">
                 <div className="absolute -top-4 -right-4 w-16 h-16 rounded-full border-4 border-brand-orange/40 flex items-center justify-center">
                   <div className="w-8 h-8 rounded-full border-2 border-brand-orange/60" />
                 </div>
@@ -311,6 +320,77 @@ export default async function HomePage() {
                 <p className="text-brand-grey text-sm leading-relaxed">{item.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── GALLERY / CAMP LIFE ── */}
+      <section className="bg-brand-black py-28 px-6 md:px-12 relative overflow-hidden">
+        <div className="absolute top-0 left-1/3 w-96 h-96 bg-brand-orange/5 rounded-full blur-3xl" />
+
+        <div className="max-w-5xl mx-auto relative z-10">
+          <div className="text-center mb-12">
+            <p className="font-mono text-brand-orange text-xs tracking-ultra uppercase mb-4">Camp Life</p>
+            <h2 className="font-display font-black text-5xl md:text-6xl uppercase leading-none text-white mb-5">
+              Moments From<br />The Court.
+            </h2>
+            <p className="text-white/50 text-base max-w-lg mx-auto leading-relaxed">
+              Training, competing, and growing together — on and off the hardwood.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 grid-flow-row-dense auto-rows-[170px] md:auto-rows-[200px] gap-3">
+            <div className="relative col-span-2 row-span-2 rounded-2xl overflow-hidden border border-white/5 group">
+              <Image src="/gallery/gallery-team-huddle.jpg" alt="Faith Hoopers team gathered together on the court"
+                fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+            </div>
+
+            <div className="relative row-span-2 rounded-2xl overflow-hidden border border-white/5 group">
+              <video autoPlay loop muted playsInline poster="/gallery/gallery-clip-fastbreak-poster.jpg"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <source src="/gallery/gallery-clip-fastbreak.mp4" type="video/mp4" />
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </div>
+
+            <div className="relative row-span-2 rounded-2xl overflow-hidden border border-white/5 group">
+              <video autoPlay loop muted playsInline poster="/gallery/gallery-clip-distribution-poster.jpg"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                <source src="/gallery/gallery-clip-distribution.mp4" type="video/mp4" />
+              </video>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden border border-white/5 group">
+              <Image src="/gallery/gallery-jumpshot.jpg" alt="Player going up for a shot during a Faith Hoopers session"
+                fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden border border-white/5 group">
+              <Image src="/gallery/gallery-helpside.jpg" alt="Faith Hoopers players running a defensive drill"
+                fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden border border-white/5 group">
+              <Image src="/gallery/gallery-practice.jpg" alt="Faith Hoopers practice session"
+                fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            </div>
+
+            <div className="relative rounded-2xl overflow-hidden border border-white/5 group">
+              <Image src="/gallery/gallery-community-steps.jpg" alt="Faith Hoopers community gathered together"
+                fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+            </div>
+          </div>
+
+          <div className="text-center mt-10">
+            <a href="https://www.instagram.com/faith.hooperscamp/" target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 font-mono text-sm text-white/40 hover:text-brand-orange transition-colors uppercase tracking-widest">
+              <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+              More on Instagram
+            </a>
           </div>
         </div>
       </section>

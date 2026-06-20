@@ -29,10 +29,11 @@ interface Props {
 }
 
 const ROLE_COLORS: Record<Role, string> = {
-  ADMIN:  'bg-purple-100 text-purple-800',
-  COACH:  'bg-spirit-100 text-spirit-700',
-  PLAYER: 'bg-court-100 text-court-800',
-  PARENT: 'bg-blue-100 text-blue-800',
+  ADMIN:       'bg-purple-100 text-purple-800',
+  COACH:       'bg-spirit-100 text-spirit-700',
+  FACILITATOR: 'bg-spirit-100 text-spirit-700',
+  PLAYER:      'bg-court-100 text-court-800',
+  PARENT:      'bg-blue-100 text-blue-800',
 }
 
 export default function MessagesView({ currentUserId, currentUserRole, canBroadcast = false }: Props) {

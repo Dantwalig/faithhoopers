@@ -11,12 +11,14 @@ async function main() {
   const adminPassword = await bcrypt.hash('admin123', 12)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@faithhoopers.com' },
-    update: {},
+    update: { emailVerified: true, passwordSet: true },
     create: {
       name: 'Faith Hoopers Admin',
       email: 'admin@faithhoopers.com',
       password: adminPassword,
       role: Role.ADMIN,
+      emailVerified: true,
+      passwordSet: true,
     },
   })
 
@@ -24,12 +26,14 @@ async function main() {
   const coachPassword = await bcrypt.hash('coach123', 12)
   const coachUser = await prisma.user.upsert({
     where: { email: 'coach.james@faithhoopers.com' },
-    update: {},
+    update: { emailVerified: true, passwordSet: true },
     create: {
       name: 'Coach James',
       email: 'coach.james@faithhoopers.com',
       password: coachPassword,
       role: Role.COACH,
+      emailVerified: true,
+      passwordSet: true,
       coach: {
         create: { specialty: 'Point Guard Training' },
       },
@@ -37,16 +41,37 @@ async function main() {
     include: { coach: true },
   })
 
+  // Create facilitator
+  const facilitatorPassword = await bcrypt.hash('facilitator123', 12)
+  const facilitatorUser = await prisma.user.upsert({
+    where: { email: 'facilitator.grace@faithhoopers.com' },
+    update: { emailVerified: true, passwordSet: true },
+    create: {
+      name: 'Grace Uwase',
+      email: 'facilitator.grace@faithhoopers.com',
+      password: facilitatorPassword,
+      role: Role.FACILITATOR,
+      emailVerified: true,
+      passwordSet: true,
+      facilitator: {
+        create: { specialty: 'Camp Operations' },
+      },
+    },
+    include: { facilitator: true },
+  })
+
   // Create parent
   const parentPassword = await bcrypt.hash('parent123', 12)
   const parentUser = await prisma.user.upsert({
     where: { email: 'sarah.mukamana@email.com' },
-    update: {},
+    update: { emailVerified: true, passwordSet: true },
     create: {
       name: 'Sarah Mukamana',
       email: 'sarah.mukamana@email.com',
       password: parentPassword,
       role: Role.PARENT,
+      emailVerified: true,
+      passwordSet: true,
       parent: { create: {} },
     },
     include: { parent: true },
@@ -56,16 +81,43 @@ async function main() {
   const playerPassword = await bcrypt.hash('player123', 12)
   const playerUser = await prisma.user.upsert({
     where: { email: 'david.mukamana@faithhoopers.com' },
-    update: {},
+    update: { emailVerified: true, passwordSet: true },
     create: {
       name: 'David Mukamana',
       email: 'david.mukamana@faithhoopers.com',
       password: playerPassword,
       role: Role.PLAYER,
+      emailVerified: true,
+      passwordSet: true,
       player: {
         create: {
           jerseyNumber: 23,
           position: 'Point Guard',
+          gender: 'MALE',
+          age: 16,
+          parentId: parentUser.parent!.id,
+        },
+      },
+    },
+  })
+
+  // Create a sibling for David, sharing the same parent — demonstrates
+  // household/sibling grouping (multiple children -> one Parent record).
+  const siblingPassword = await bcrypt.hash('player123', 12)
+  await prisma.user.upsert({
+    where: { email: 'esther.mukamana@faithhoopers.com' },
+    update: { emailVerified: true, passwordSet: true },
+    create: {
+      name: 'Esther Mukamana',
+      email: 'esther.mukamana@faithhoopers.com',
+      password: siblingPassword,
+      role: Role.PLAYER,
+      emailVerified: true,
+      passwordSet: true,
+      player: {
+        create: {
+          gender: 'FEMALE',
+          age: 14,
           parentId: parentUser.parent!.id,
         },
       },
@@ -128,7 +180,7 @@ async function main() {
       {
         title: 'Welcome to Faith Hoopers Camp 2025!',
         body: 'We\'re so excited to have you here. Please check the schedule and make sure your emergency contact info is up to date with your coach.',
-        targetRoles: [Role.ADMIN, Role.COACH, Role.PLAYER, Role.PARENT],
+        targetRoles: [Role.ADMIN, Role.COACH, Role.FACILITATOR, Role.PLAYER, Role.PARENT],
         urgent: false,
         publishedAt: new Date(),
       },
@@ -143,11 +195,13 @@ async function main() {
   })
 
   console.log('✅ Seed complete!')
-  console.log('\n🔑 Test accounts:')
-  console.log('  Admin:  admin@faithhoopers.com / admin123')
-  console.log('  Coach:  coach.james@faithhoopers.com / coach123')
-  console.log('  Player: david.mukamana@faithhoopers.com / player123')
-  console.log('  Parent: sarah.mukamana@email.com / parent123')
+  console.log('\n🔑 Test accounts (all pre-verified, ready to sign in):')
+  console.log('  Admin:       admin@faithhoopers.com / admin123')
+  console.log('  Coach:       coach.james@faithhoopers.com / coach123')
+  console.log('  Facilitator: facilitator.grace@faithhoopers.com / facilitator123')
+  console.log('  Player:      david.mukamana@faithhoopers.com / player123')
+  console.log('  Player (sibling of David): esther.mukamana@faithhoopers.com / player123')
+  console.log('  Parent:      sarah.mukamana@email.com / parent123')
 }
 
 main()

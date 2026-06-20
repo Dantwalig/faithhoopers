@@ -17,7 +17,7 @@ interface Props {
   canCreate?: boolean
 }
 
-const ALL_ROLES: Role[] = [Role.ADMIN, Role.COACH, Role.PLAYER, Role.PARENT]
+const ALL_ROLES: Role[] = [Role.ADMIN, Role.COACH, Role.FACILITATOR, Role.PLAYER, Role.PARENT]
 
 export default function AnnouncementsView({ canCreate = false }: Props) {
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
@@ -25,7 +25,7 @@ export default function AnnouncementsView({ canCreate = false }: Props) {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({
     title: '', body: '', urgent: false,
-    targetRoles: [Role.PLAYER, Role.PARENT, Role.COACH] as Role[],
+    targetRoles: [Role.PLAYER, Role.PARENT, Role.COACH, Role.FACILITATOR] as Role[],
     expiresAt: '',
   })
   const [saving, setSaving] = useState(false)
@@ -63,7 +63,7 @@ export default function AnnouncementsView({ canCreate = false }: Props) {
     setAnnouncements(a => [data, ...a])
     setShowForm(false)
     setSaving(false)
-    setForm({ title: '', body: '', urgent: false, targetRoles: [Role.PLAYER, Role.PARENT, Role.COACH], expiresAt: '' })
+    setForm({ title: '', body: '', urgent: false, targetRoles: [Role.PLAYER, Role.PARENT, Role.COACH, Role.FACILITATOR], expiresAt: '' })
   }
 
   async function handleDelete(id: string) {

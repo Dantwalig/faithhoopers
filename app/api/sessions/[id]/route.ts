@@ -29,7 +29,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const role = (session.user as any).role as Role
-  if (role !== Role.ADMIN && role !== Role.COACH) {
+  if (role !== Role.ADMIN && role !== Role.COACH && role !== Role.FACILITATOR) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

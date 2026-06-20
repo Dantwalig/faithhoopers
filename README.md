@@ -8,12 +8,13 @@ A full-stack faith-based basketball platform built with **Next.js 14**, **Prisma
 
 | Module | Who can use it |
 |---|---|
-| **Registration** | Players (with parent details), Coaches, Parents |
-| **Schedule** | All roles — Admins & Coaches can create sessions |
-| **Attendance** | Admins & Coaches mark; Players & Parents view |
+| **Registration** | Players (gender, age 13–19, health notes, optional auto-linked parent), Coaches, Facilitators, Parents |
+| **Email verification** | Everyone — 6-digit code by email after signup; auto-created parent accounts set their password during verification |
+| **Schedule** | All roles — Admins, Coaches & Facilitators can create sessions |
+| **Attendance** | Admins, Coaches & Facilitators mark; Players & Parents view |
 | **Devotionals** | Admin creates (with Bible API auto-fetch); all roles read |
-| **Announcements** | Admin & Coach post; filtered by role |
-| **Messages** | Broadcast (Coach → all) + Direct (any two users) |
+| **Announcements** | Admin, Coach & Facilitator post; filtered by role |
+| **Messages** | Broadcast (Coach/Facilitator → all) + Direct (any two users) |
 
 ---
 
@@ -60,6 +61,11 @@ NEXTAUTH_URL="http://localhost:3000"
 BIBLE_API_KEY="your-api-bible-key"
 BIBLE_API_BASE="https://api.scripture.api.bible/v1"
 BIBLE_VERSION_ID="de4e12af7f28f599-01"   # KJV — change if preferred
+
+# Resend (https://resend.com) — sends verification-code & welcome emails.
+# Without it, emails are skipped (logged to console) and nobody can verify their account.
+RESEND_API_KEY="your-resend-api-key"
+EMAIL_FROM="Faith Hoopers <hello@yourdomain.com>"
 ```
 
 ### 3. Set up the database
@@ -91,8 +97,12 @@ Open [http://localhost:3000](http://localhost:3000)
 |---|---|---|
 | Admin | admin@faithhoopers.com | admin123 |
 | Coach | coach.james@faithhoopers.com | coach123 |
+| Facilitator | facilitator.grace@faithhoopers.com | facilitator123 |
 | Player | david.mukamana@faithhoopers.com | player123 |
+| Player (David's sibling, same parent) | esther.mukamana@faithhoopers.com | player123 |
 | Parent | sarah.mukamana@email.com | parent123 |
+
+All seeded accounts are pre-verified (`emailVerified: true`) so you can sign in immediately without going through `/verify`.
 
 ---
 
@@ -104,6 +114,8 @@ faith-hoopers/
 │   ├── api/
 │   │   ├── auth/[...nextauth]/    # NextAuth handler
 │   │   ├── register/              # User registration
+│   │   ├── verify-email/          # Email verification (+ resend/ for new codes)
+│   │   ├── set-password/          # Password setup for auto-created parent accounts
 │   │   ├── sessions/              # CRUD for camp sessions
 │   │   │   └── [id]/
 │   │   ├── attendance/            # Bulk attendance marking
@@ -111,17 +123,18 @@ faith-hoopers/
 │   │   │   └── bible/
 │   │   ├── announcements/         # Announcements CRUD
 │   │   ├── messages/
-│   │   │   ├── broadcast/         # Coach → all messages
+│   │   │   ├── broadcast/         # Coach/Facilitator → all messages
 │   │   │   └── direct/            # 1-on-1 messages
 │   │   └── users/                 # User listing
 │   ├── dashboard/
 │   │   ├── layout.tsx             # Sidebar + topbar shell
 │   │   ├── admin/                 # Admin pages
-│   │   ├── coach/                 # Coach pages
+│   │   ├── coach/                 # Coach + Facilitator pages
 │   │   ├── player/                # Player pages
 │   │   └── parent/                # Parent pages
 │   ├── login/
 │   ├── register/
+│   ├── verify/                    # Enter verification code / set password
 │   └── page.tsx                   # Landing page
 ├── components/
 │   ├── layout/
@@ -139,7 +152,10 @@ faith-hoopers/
 ├── lib/
 │   ├── auth/
 │   │   ├── auth-options.ts        # NextAuth config
-│   │   └── helpers.ts             # requireAuth, requireRole
+│   │   ├── helpers.ts             # requireAuth, requireRole, dashboardPath
+│   │   └── verification.ts        # Verification code generation
+│   ├── email/
+│   │   └── send.ts                # Resend-based email sending + templates
 │   ├── db/
 │   │   └── prisma.ts              # Prisma singleton
 │   └── bible-api/
@@ -205,5 +221,18 @@ In your `.env`, change `BIBLE_VERSION_ID` to any version from [api.bible](https:
 |---|---|---|---|---|---|---|
 | **Admin** | ✅ Create all | ✅ Create/view | ✅ Mark/view all | ✅ Create/view | ✅ Create/delete | ✅ All |
 | **Coach** | — | ✅ Create/view | ✅ Mark assigned | ✅ View | ✅ Post | ✅ Broadcast + direct |
+| **Facilitator** | — | ✅ Create/view | ✅ Mark assigned | ✅ View | ✅ Post | ✅ Broadcast + direct |
 | **Player** | ✅ Self | ✅ View | — | ✅ View | ✅ View (player) | ✅ Direct |
 | **Parent** | ✅ Self | ✅ View | — | ✅ View | ✅ View (parent) | ✅ Direct |
+
+Facilitators currently share the Coach dashboard and permissions one-for-one — they're a distinct
+role (separate `Facilitator` table) for reporting purposes, but use the same screens.
+
+## Households & Siblings
+
+There's no separate "household" model — a household *is* a `Parent` record, and any number of
+`Player` records can point at the same `parentId`. When a player registers with a parent email
+that already belongs to an existing parent account (whether self-registered or auto-created by an
+earlier sibling), they're automatically linked to that same parent — no duplicates. The Admin →
+Players page shows a "+N sibling(s)" badge next to the parent's name when more than one child
+shares that parent.

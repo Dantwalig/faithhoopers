@@ -8,7 +8,7 @@ interface AttendanceRecord {
   playerId: string
   present: boolean
   notes: string
-  player: { user: { name: string }; jerseyNumber: number | null }
+  player: { user: { name: string }; jerseyNumber: number | null; medicalNotes?: string | null }
 }
 
 export default function AttendancePage() {
@@ -52,7 +52,7 @@ export default function AttendancePage() {
           playerId: p.player?.id ?? p.id,
           present:  false,
           notes:    '',
-          player:   { user: { name: p.name }, jerseyNumber: p.player?.jerseyNumber ?? null },
+          player:   { user: { name: p.name }, jerseyNumber: p.player?.jerseyNumber ?? null, medicalNotes: p.player?.medicalNotes ?? null },
         })))
       })
   }, [sessionId, loading, records.length])
@@ -157,7 +157,12 @@ export default function AttendancePage() {
 
                   {/* Player info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-ink-800">{rec.player.user.name}</p>
+                    <p className="font-medium text-ink-800 flex items-center gap-2">
+                      {rec.player.user.name}
+                      {rec.player.medicalNotes && (
+                        <span className="badge-red text-[10px]" title={rec.player.medicalNotes}>⚠ health note</span>
+                      )}
+                    </p>
                     {rec.player.jerseyNumber && (
                       <p className="text-xs text-ink-400">#{rec.player.jerseyNumber}</p>
                     )}

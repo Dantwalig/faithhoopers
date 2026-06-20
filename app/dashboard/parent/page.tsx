@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { Role, SessionType } from '@/lib/enums'
 import { SessionTypeBadge } from '@/components/ui/SessionTypeBadge'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SessionRow {
   id: string; title: string; type: SessionType; startTime: Date
@@ -14,7 +15,7 @@ interface AttendanceRow {
   session: { title: string; startTime: Date }
 }
 interface ChildRow {
-  id: string; jerseyNumber: number | null; position: string | null
+  id: string; gender: string | null; age: number | null
   user: { name: string }
   attendances: AttendanceRow[]
 }
@@ -61,10 +62,17 @@ export default async function ParentDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-ink-900">Parent Dashboard</h1>
-        <p className="text-ink-500 text-sm mt-1">Stay connected with your child's camp experience</p>
+      {/* Photo banner */}
+      <div className="relative h-36 md:h-44 rounded-2xl overflow-hidden border border-ink-100">
+        <Image src="/gallery/gallery-team-huddle.jpg" alt=""
+          fill className="object-cover object-[50%_40%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-coal/90 via-brand-coal/60 to-transparent" />
+        <div className="relative h-full flex flex-col justify-center px-7">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-white">Parent Dashboard</h1>
+          <p className="text-white/60 text-sm mt-1">Stay connected to your child's camp journey</p>
+        </div>
       </div>
+      
 
       {children.length === 0 ? (
         <div className="card card-body text-center py-10">
@@ -84,8 +92,8 @@ export default async function ParentDashboard() {
                     <div>
                       <h2 className="font-display text-base font-semibold text-ink-800">{child.user.name}</h2>
                       <p className="text-xs text-ink-500 mt-0.5">
-                        {child.position ?? 'Position not set'}
-                        {child.jerseyNumber ? ` · #${child.jerseyNumber}` : ''}
+                        {child.gender === 'MALE' ? 'Boy' : child.gender === 'FEMALE' ? 'Girl' : 'Gender not set'}
+                        {child.age ? ` · Age ${child.age}` : ''}
                       </p>
                     </div>
                     <div className="text-right">

@@ -3,6 +3,6 @@ import { requireRole } from '@/lib/auth/helpers'
 import { Role } from '@/lib/enums'
 
 export default async function CoachSchedulePage() {
-  await requireRole(Role.COACH)
+  await requireRole(Role.COACH, Role.FACILITATOR)
   return <ScheduleView />
 }

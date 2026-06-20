@@ -7,9 +7,13 @@ interface PlayerRow {
   id: string; name: string; email: string; phone: string | null
   player: {
     jerseyNumber: number | null; position: string | null
+    gender: string | null; age: number | null; medicalNotes: string | null
     attendances: { present: boolean }[]
     _count: { attendances: number }
-    parent: { user: { name: string; email: string } } | null
+    parent: {
+      user: { name: string; email: string }
+      _count: { children: number }
+    } | null
   } | null
 }
 
@@ -21,7 +25,12 @@ export default async function AdminPlayersPage() {
     include: {
       player: {
         include: {
-          parent: { include: { user: { select: { name: true, email: true } } } },
+          parent: {
+            include: {
+              user: { select: { name: true, email: true } },
+              _count: { select: { children: true } },
+            },
+          },
           attendances: { where: { present: true } },
           _count: { select: { attendances: true } },
         },
@@ -35,7 +44,9 @@ export default async function AdminPlayersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-ink-900">Players</h1>
-          <p className="text-ink-500 text-sm mt-0.5">{players.length} registered players</p>
+          <p className="text-ink-500 text-sm mt-0.5">
+            {players.length} registered players · siblings are grouped automatically under a shared parent account
+          </p>
         </div>
       </div>
 
@@ -51,10 +62,11 @@ export default async function AdminPlayersPage() {
             <thead>
               <tr className="bg-ink-50 border-b border-ink-100">
                 <th className="text-left px-6 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Player</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Position</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Parent</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Age / Gender</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Parent / Household</th>
                 <th className="text-center px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Attendance</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Phone</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-ink-500 uppercase tracking-wide">Health</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-ink-100">
@@ -75,11 +87,21 @@ export default async function AdminPlayersPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-ink-600">{p.player?.position ?? '—'}</td>
+                    <td className="px-4 py-4 text-ink-600">
+                      {p.player?.gender === 'MALE' ? 'Boy' : p.player?.gender === 'FEMALE' ? 'Girl' : '—'}
+                      {p.player?.age ? ` · ${p.player.age}y` : ''}
+                    </td>
                     <td className="px-4 py-4">
                       {p.player?.parent ? (
                         <div>
-                          <p className="text-ink-700">{p.player.parent.user.name}</p>
+                          <p className="text-ink-700">
+                            {p.player.parent.user.name}
+                            {p.player.parent._count.children > 1 && (
+                              <span className="badge text-xs bg-spirit-100 text-spirit-700 ml-2">
+                                +{p.player.parent._count.children - 1} sibling{p.player.parent._count.children - 1 > 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </p>
                           <p className="text-xs text-ink-400">{p.player.parent.user.email}</p>
                         </div>
                       ) : <span className="text-ink-400">—</span>}
@@ -93,6 +115,11 @@ export default async function AdminPlayersPage() {
                       </div>
                     </td>
                     <td className="px-4 py-4 text-ink-600 text-xs">{p.phone ?? '—'}</td>
+                    <td className="px-4 py-4 text-xs">
+                      {p.player?.medicalNotes ? (
+                        <span className="badge-red" title={p.player.medicalNotes}>⚠ Has notes</span>
+                      ) : <span className="text-ink-400">—</span>}
+                    </td>
                   </tr>
                 )
               })}

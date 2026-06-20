@@ -4,6 +4,7 @@ import { Role, SessionType } from '@/lib/enums'
 import { StatCard } from '@/components/ui/StatCard'
 import { SessionTypeBadge } from '@/components/ui/SessionTypeBadge'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SessionRow {
   id: string; title: string; type: SessionType; startTime: Date
@@ -12,7 +13,7 @@ interface SessionRow {
 interface BroadcastRow { id: string; subject: string | null; body: string; createdAt: Date }
 
 export default async function CoachDashboard() {
-  const session = await requireRole(Role.COACH)
+  const session = await requireRole(Role.COACH, Role.FACILITATOR)
   const userId  = (session.user as { id: string }).id
 
   const coach = await prisma.coach.findUnique({
@@ -43,9 +44,15 @@ export default async function CoachDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-ink-900">Coach Dashboard</h1>
-        <p className="text-ink-500 text-sm mt-1">Your sessions, players, and messages</p>
+      {/* Photo banner */}
+      <div className="relative h-36 md:h-44 rounded-2xl overflow-hidden border border-ink-100">
+        <Image src="/gallery/gallery-practice.jpg" alt=""
+          fill className="object-cover object-[50%_55%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-coal/90 via-brand-coal/60 to-transparent" />
+        <div className="relative h-full flex flex-col justify-center px-7">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-white">Coach Dashboard</h1>
+          <p className="text-white/60 text-sm mt-1">Your sessions, players, and messages</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

@@ -34,7 +34,7 @@ function ClipboardIcon() {
 }
 
 function navItemsForRole(role: Role): NavItem[] {
-  const base = `/dashboard/${role.toLowerCase()}`
+  const base = (role === Role.FACILITATOR ? '/dashboard/coach' : `/dashboard/${role.toLowerCase()}`)
 
   const shared: NavItem[] = [
     { label: 'Dashboard',      href: base,                      icon: <GridIcon /> },
@@ -56,7 +56,7 @@ function navItemsForRole(role: Role): NavItem[] {
     ]
   }
 
-  if (role === Role.COACH) {
+  if (role === Role.COACH || role === Role.FACILITATOR) {
     return [
       { label: 'Dashboard',      href: base,                       icon: <GridIcon /> },
       { label: 'Schedule',       href: `${base}/schedule`,         icon: <CalendarIcon /> },
@@ -81,14 +81,15 @@ export function SidebarNav({ role, userName, userEmail }: Props) {
   const items = navItemsForRole(role)
 
   const roleLabel: Record<Role, string> = {
-    ADMIN: 'Admin', COACH: 'Coach', PLAYER: 'Player', PARENT: 'Parent',
+    ADMIN: 'Admin', COACH: 'Coach', FACILITATOR: 'Facilitator', PLAYER: 'Player', PARENT: 'Parent',
   }
 
   const roleColor: Record<Role, string> = {
-    ADMIN:  'bg-purple-100 text-purple-800',
-    COACH:  'bg-spirit-100 text-spirit-700',
-    PLAYER: 'bg-court-100 text-court-800',
-    PARENT: 'bg-blue-100 text-blue-800',
+    ADMIN:       'bg-purple-100 text-purple-800',
+    COACH:       'bg-spirit-100 text-spirit-700',
+    FACILITATOR: 'bg-spirit-100 text-spirit-700',
+    PLAYER:      'bg-court-100 text-court-800',
+    PARENT:      'bg-blue-100 text-blue-800',
   }
 
   return (

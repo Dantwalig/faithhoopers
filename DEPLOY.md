@@ -110,10 +110,11 @@ Still in the terminal inside the `hoops` folder:
    You should see:
    ```
    ✅ Seed complete!
-   Admin:  admin@faithhoopers.com / admin123
-   Coach:  coach.james@faithhoopers.com / coach123
-   Player: david.mukamana@faithhoopers.com / player123
-   Parent: sarah.mukamana@email.com / parent123
+   Admin:       admin@faithhoopers.com / admin123
+   Coach:       coach.james@faithhoopers.com / coach123
+   Facilitator: facilitator.grace@faithhoopers.com / facilitator123
+   Player:      david.mukamana@faithhoopers.com / player123
+   Parent:      sarah.mukamana@email.com / parent123
    ```
 
 7. **Test locally** before deploying:
@@ -136,6 +137,23 @@ Without this, devotional verse text must be entered manually. With it, the verse
 
 ---
 
+## STEP 5B — Set Up Email (Required for Signup Verification)
+
+When someone registers, they get an email with a 6-digit code to verify their address —
+without this set up, that email never sends and nobody can finish signing up.
+
+1. Go to **[resend.com](https://resend.com)** → sign up (free tier: 100 emails/day, 3,000/month)
+2. Add and verify a sending domain under **Domains** (follow their DNS instructions — takes a few minutes to a few hours to verify)
+   - No domain yet? You can test with their shared `onboarding@resend.dev` address, but real users' emails may land in spam — verify your own domain before a real launch.
+3. Go to **API Keys** → create a new key → copy it
+4. Add to your `.env` (and later, Vercel environment variables):
+   ```env
+   RESEND_API_KEY="re_xxxxxxxxxxxx"
+   EMAIL_FROM="Faith Hoopers <hello@yourdomain.com>"
+   ```
+
+---
+
 ## STEP 6 — Deploy to Vercel
 
 1. Go to **[vercel.com](https://vercel.com)** → sign up with GitHub
@@ -152,6 +170,8 @@ Without this, devotional verse text must be entered manually. With it, the verse
    | `BIBLE_API_KEY` | Your api.bible key (or leave blank if skipping) |
    | `BIBLE_API_BASE` | `https://api.scripture.api.bible/v1` |
    | `BIBLE_VERSION_ID` | `de4e12af7f28f599-01` |
+   | `RESEND_API_KEY` | Your Resend API key from Step 5B |
+   | `EMAIL_FROM` | e.g. `Faith Hoopers <hello@yourdomain.com>` |
 
 6. Click **Deploy** — wait ~2 minutes
 7. Once deployed, Vercel gives you a URL like `https://faith-hoopers-abc123.vercel.app`
@@ -191,20 +211,44 @@ When you want to update the app:
    ```
 4. Vercel **automatically redeploys** within ~1 minute of every push — no manual steps needed
 
+### This update specifically (gender/age/health fields, facilitators, email verification)
+
+This update changes the database schema (new fields + a new `Facilitator` table), so there's one
+extra step beyond a normal code push — **run this once, locally, against your live database**,
+before or right after pushing:
+
+```bash
+npm run db:push
+```
+
+It will show a short summary of the new columns/tables and ask `Do you want to continue? › (y/N)` —
+type `y`. This does **not** delete or touch any existing rows, it only adds the new fields. Then
+push your code as usual — Vercel will pick it up.
+
+You'll also need to add `RESEND_API_KEY` and `EMAIL_FROM` to Vercel's environment variables (see
+Step 5B above) for the new verification emails to actually send — without it, signups still work
+but the email step is skipped (logged to the server console instead), so nobody can verify and log in.
+
 ---
 
 ## Adding Real Users
 
-Once deployed, tell your coaches, players, and parents to:
+Once deployed, tell your coaches, facilitators, players, and parents to:
 
 1. Go to `https://your-vercel-url.vercel.app/register`
-2. Select their role and fill in the form
-3. Log in at `/login`
+2. Select their role (Player, Parent, Coach, or Facilitator) and fill in the form
+3. Check their email for a 6-digit verification code and enter it at `/verify`
+4. Log in at `/login`
+
+If a player adds a parent's email during signup and that parent doesn't already have an account,
+one is created automatically — the parent gets their own email with a code, and sets their own
+password the first time they verify. If a sibling registers later with the same parent email,
+they're automatically linked to that same parent account (no duplicate parent accounts).
 
 To **remove the demo accounts** from production:
 1. Go to your Supabase dashboard → **Table Editor** → `users` table
 2. Delete the rows with `admin@faithhoopers.com`, `coach.james@faithhoopers.com`, etc.
-3. Create your real admin account through `/register` (selecting Player role first, then manually changing it to Admin in the Supabase `users` table → `role` column)
+3. Create your real admin account through `/register` (selecting Player role first, then manually changing it to Admin in the Supabase `users` table → `role` column). You'll also need to manually set `emailVerified` to `true` and `passwordSet` to `true` for that row in Supabase so you can log in immediately without waiting on the verification email.
 
 ---
 
@@ -224,6 +268,12 @@ To **remove the demo accounts** from production:
 
 **Bible verses not loading**
 → Check your `BIBLE_API_KEY` is correct. You can leave it blank and enter verse text manually instead.
+
+**Verification email never arrives**
+→ Check `RESEND_API_KEY` and `EMAIL_FROM` are set in Vercel's environment variables, that your sending domain is verified in Resend, and check the spam folder. Until a domain is verified, some inboxes (especially Gmail) may silently filter emails from Resend's shared `onboarding@resend.dev` address.
+
+**"Please verify your email before signing in"**
+→ The account hasn't entered its 6-digit code yet. Go to `/verify`, enter the email, and use "Resend code" if the original email didn't arrive.
 
 ---
 

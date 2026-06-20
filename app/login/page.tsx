@@ -1,16 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
+  const [error, setError] = useState<React.ReactNode>('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const justRegistered = searchParams.get('registered') === '1'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -24,7 +35,18 @@ export default function LoginPage() {
     })
 
     if (res?.error) {
-      setError('Invalid email or password.')
+      if (res.error === 'UNVERIFIED' || res.error === 'NEEDS_PASSWORD') {
+        setError(
+          <>
+            Please verify your email before signing in.{' '}
+            <Link href={`/verify?email=${encodeURIComponent(email)}`} className="underline font-medium">
+              Verify now
+            </Link>
+          </>
+        )
+      } else {
+        setError('Invalid email or password.')
+      }
       setLoading(false)
       return
     }
@@ -34,10 +56,12 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-brand-black flex items-center justify-center px-4">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-court-500 to-court-400"/>
+    <div className="relative min-h-screen bg-brand-black flex items-center justify-center px-4 overflow-hidden">
+      <Image src="/gallery/gallery-jumpshot.jpg" alt="" fill className="object-cover opacity-20" />
+      <div className="absolute inset-0 bg-gradient-to-b from-brand-black/90 via-brand-black/95 to-brand-black" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-court-500 to-court-400 z-10"/>
 
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-md relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex flex-col items-center gap-3">
@@ -54,6 +78,12 @@ export default function LoginPage() {
         <div className="bg-brand-coal rounded-3xl border border-white/5 p-8">
           <h1 className="font-display text-2xl font-bold text-white mb-1">Welcome back</h1>
           <p className="text-ink-400 text-sm mb-6">Sign in to your camp account</p>
+
+          {justRegistered && !error && (
+            <div className="mb-4 rounded-xl bg-court-900/30 border border-court-700 px-4 py-3 text-sm text-court-300">
+              Account created! Check your email for a verification code before signing in.
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 rounded-xl bg-red-900/30 border border-red-800 px-4 py-3 text-sm text-red-300">
@@ -102,15 +132,6 @@ export default function LoginPage() {
               Register here
             </Link>
           </p>
-
-          {/* Demo credentials hint */}
-          <div className="mt-6 rounded-xl bg-brand-black border border-white/10 p-4 text-xs text-ink-400 space-y-1">
-            <p className="font-medium text-white/60 mb-2">Demo accounts (after seeding):</p>
-            <p>Admin: admin@faithhoopers.com / admin123</p>
-            <p>Coach: coach.james@faithhoopers.com / coach123</p>
-            <p>Player: david.mukamana@faithhoopers.com / player123</p>
-            <p>Parent: sarah.mukamana@email.com / parent123</p>
-          </div>
         </div>
       </div>
     </div>

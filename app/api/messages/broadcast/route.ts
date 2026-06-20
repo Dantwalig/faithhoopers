@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const role = (session.user as any).role as Role
   const senderId = (session.user as any).id as string
 
-  if (role !== Role.ADMIN && role !== Role.COACH) {
+  if (role !== Role.ADMIN && role !== Role.COACH && role !== Role.FACILITATOR) {
     return NextResponse.json({ error: 'Only coaches and admins can broadcast messages' }, { status: 403 })
   }
 

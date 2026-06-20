@@ -25,10 +25,14 @@ export async function GET(req: NextRequest) {
         select: {
           jerseyNumber: true,
           position: true,
+          gender: true,
+          age: true,
+          medicalNotes: true,
           parent: { select: { user: { select: { name: true, email: true } } } },
         },
       },
       coach: { select: { specialty: true } },
+      facilitator: { select: { specialty: true } },
     },
     orderBy: { name: 'asc' },
   })

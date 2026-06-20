@@ -7,10 +7,11 @@ interface Props {
 }
 
 const greetingByRole: Record<Role, string> = {
-  ADMIN:  'Managing the camp',
-  COACH:  'Ready to coach',
-  PLAYER: 'Ready to play',
-  PARENT: 'Staying connected',
+  ADMIN:       'Managing the camp',
+  COACH:       'Ready to coach',
+  FACILITATOR: 'Ready to help out',
+  PLAYER:      'Ready to play',
+  PARENT:      'Staying connected',
 }
 
 export function TopBar({ user }: Props) {

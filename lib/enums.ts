@@ -3,10 +3,11 @@
 // type-check without needing `prisma generate` to have run first.
 
 export enum Role {
-  ADMIN  = 'ADMIN',
-  COACH  = 'COACH',
-  PLAYER = 'PLAYER',
-  PARENT = 'PARENT',
+  ADMIN       = 'ADMIN',
+  COACH       = 'COACH',
+  FACILITATOR = 'FACILITATOR',
+  PLAYER      = 'PLAYER',
+  PARENT      = 'PARENT',
 }
 
 export enum SessionType {
@@ -14,4 +15,9 @@ export enum SessionType {
   GAME       = 'GAME',
   BIBLE_STUDY = 'BIBLE_STUDY',
   DEVOTIONAL = 'DEVOTIONAL',
+}
+
+export enum Gender {
+  MALE   = 'MALE',
+  FEMALE = 'FEMALE',
 }

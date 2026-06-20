@@ -1,6 +1,6 @@
-import { Role, SessionType } from '@/lib/enums'
+import { Role, SessionType, Gender } from '@/lib/enums'
 
-export type { Role, SessionType }
+export type { Role, SessionType, Gender }
 
 export interface SessionUser {
   id: string
@@ -36,6 +36,8 @@ export interface AttendanceRecord {
   player: {
     user: { name: string }
     jerseyNumber: number | null
+    gender?: Gender | null
+    age?: number | null
   }
 }
 

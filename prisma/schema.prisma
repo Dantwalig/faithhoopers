@@ -10,6 +10,7 @@ datasource db {
 enum Role {
   ADMIN
   COACH
+  FACILITATOR
   PLAYER
   PARENT
 }
@@ -19,6 +20,11 @@ enum SessionType {
   GAME
   BIBLE_STUDY
   DEVOTIONAL
+}
+
+enum Gender {
+  MALE
+  FEMALE
 }
 
 model User {
@@ -31,9 +37,20 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Email verification
+  emailVerified             Boolean   @default(false)
+  verificationCode          String?
+  verificationCodeExpiresAt DateTime?
+
+  // False for accounts auto-created on someone else's behalf (e.g. a parent
+  // created automatically when their child registers) until that person
+  // verifies their email and sets their own password.
+  passwordSet   Boolean   @default(true)
+
   // Relations
   player        Player?
   coach         Coach?
+  facilitator   Facilitator?
   parent        Parent?
   sentMessages  Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
@@ -48,6 +65,9 @@ model Player {
 
   jerseyNumber  Int?
   position      String?
+  gender        Gender?
+  age           Int?
+  medicalNotes  String?   // pre-existing health conditions / injuries, shared with coaches & admin only
   dateOfBirth   DateTime?
   parentId      String?
   parent        Parent?   @relation(fields: [parentId], references: [id])
@@ -68,6 +88,16 @@ model Coach {
   sessions      Session[] @relation("CoachSessions")
 
   @@map("coaches")
+}
+
+model Facilitator {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty     String?
+  createdAt     DateTime  @default(now())
+
+  @@map("facilitators")
 }
 
 model Parent {

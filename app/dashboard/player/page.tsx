@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/prisma'
 import { Role, SessionType } from '@/lib/enums'
 import { SessionTypeBadge } from '@/components/ui/SessionTypeBadge'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface SessionRow {
   id: string; title: string; type: SessionType; startTime: Date
@@ -47,9 +48,17 @@ export default async function PlayerDashboard() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="font-display text-2xl font-bold text-ink-900">Welcome, {userName} 👋</h1>
-        <p className="text-ink-500 text-sm mt-1">Here's what's happening at camp today</p>
+      {/* Photo banner */}
+      <div className="relative h-36 md:h-44 rounded-2xl overflow-hidden border border-ink-100">
+        <Image src="/gallery/gallery-jumpshot.jpg" alt=""
+          fill className="object-cover object-[50%_20%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-brand-coal/90 via-brand-coal/60 to-transparent" />
+        <div className="relative h-full flex flex-col justify-center px-7">
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-white">
+            Welcome, {userName} 👋
+          </h1>
+          <p className="text-white/60 text-sm mt-1">Here's what's happening at camp today</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-3 gap-4">
@@ -64,9 +73,9 @@ export default async function PlayerDashboard() {
           <p className="text-xs mt-1 opacity-60">Sessions scheduled</p>
         </div>
         <div className="rounded-2xl border border-purple-200 bg-purple-50 p-5 text-purple-700">
-          <p className="text-sm font-medium opacity-70 mb-1">Jersey #</p>
-          <p className="font-display text-3xl font-bold">{player?.jerseyNumber ?? '–'}</p>
-          <p className="text-xs mt-1 opacity-60">{player?.position ?? 'Position not set'}</p>
+          <p className="text-sm font-medium opacity-70 mb-1">Age</p>
+          <p className="font-display text-3xl font-bold">{player?.age ?? '–'}</p>
+          <p className="text-xs mt-1 opacity-60">{player?.gender === 'MALE' ? 'Boy' : player?.gender === 'FEMALE' ? 'Girl' : 'Not set'}</p>
         </div>
       </div>
 
