@@ -115,6 +115,12 @@ Still in the terminal inside the `hoops` folder:
    ```bash
    npm run db:seed
    ```
+   This also creates (or re-checks) three real admin accounts — joshuakacyira@gmail.com,
+   faithhoopers@gmail.com, and danielgntwali@gmail.com — and emails each of them a setup code
+   (requires `RESEND_API_KEY` to actually be set, otherwise the code is only logged to your
+   terminal). They activate their account at **Forgot password** on the login page: enter their
+   email, then the code from the email, then choose a password. Safe to re-run `db:seed` later —
+   it skips anyone who's already set a password.
    You should see:
    ```
    ✅ Seed complete!

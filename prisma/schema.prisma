@@ -48,6 +48,10 @@ model User {
   // verifies their email and sets their own password.
   passwordSet   Boolean   @default(true)
 
+  // Forgot/reset password
+  resetCode             String?
+  resetCodeExpiresAt    DateTime?
+
   // Relations
   player        Player?
   coach         Coach?

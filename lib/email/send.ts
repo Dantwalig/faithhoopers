@@ -1,17 +1,14 @@
-// Minimal email sender built on Resend's REST API (https://resend.com).
-// We talk to it with a plain fetch call instead of adding their SDK as a
-// dependency — one less package to install/keep updated.
+// Email sender using Nodemailer + Gmail SMTP.
 //
-// Setup (production):
-//   1. Create a free account at https://resend.com
-//   2. Verify a sending domain (or use their shared onboarding domain for testing)
-//   3. Create an API key and set RESEND_API_KEY in your environment
-//   4. Set EMAIL_FROM to an address on your verified domain, e.g.
-//      EMAIL_FROM="Faith Hoopers <hello@faithhoopers.com>"
+// Setup:
+//   1. Enable 2-Step Verification on your Google account
+//   2. Go to myaccount.google.com/apppasswords and generate an App Password
+//   3. Set GMAIL_USER and GMAIL_PASS in your environment
 //
-// If RESEND_API_KEY is not set, sendEmail() logs to the console instead of
-// throwing — this keeps local dev and CI builds working without an API key,
-// but it means real emails will NOT go out until the key is configured.
+// If GMAIL_USER or GMAIL_PASS is not set, sendEmail() logs to the console
+// instead of throwing — signups will still work locally without credentials.
+
+import nodemailer from 'nodemailer'
 
 interface SendEmailInput {
   to: string
@@ -19,33 +16,26 @@ interface SendEmailInput {
   html: string
 }
 
-export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<{ sent: boolean }> {
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.EMAIL_FROM || 'Faith Hoopers <onboarding@resend.dev>'
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+})
 
-  if (!apiKey) {
+export async function sendEmail({ to, subject, html }: SendEmailInput): Promise<{ sent: boolean }> {
+  const from = `Faith Hoopers <${process.env.GMAIL_USER}>`
+
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
     console.warn(
-      `[email] RESEND_API_KEY not set — skipping send. Would have emailed "${subject}" to ${to}.`
+      `[email] GMAIL_USER or GMAIL_PASS not set — skipping send. Would have emailed "${subject}" to ${to}.`
     )
     return { sent: false }
   }
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ from, to, subject, html }),
-    })
-
-    if (!res.ok) {
-      const text = await res.text()
-      console.error(`[email] Resend API error (${res.status}):`, text)
-      return { sent: false }
-    }
-
+    await transporter.sendMail({ from, to, subject, html })
     return { sent: true }
   } catch (err) {
     console.error('[email] Failed to send:', err)
@@ -91,6 +81,35 @@ export function welcomeEmailHtml(opts: { name: string }): string {
       Your email is verified and your account is active. We're excited to have you on the team —
       sign in any time to see the schedule, devotionals, and announcements.
     </p>
+  `)
+}
+
+export function resetPasswordEmailHtml(opts: { name: string; code: string }): string {
+  return emailShell(`
+    <p style="color:#fff;font-size:16px;margin:0 0 8px;">Hi ${escapeHtml(opts.name)},</p>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.5;margin:0 0 24px;">
+      We received a request to reset your Faith Hoopers password. Enter the code below to choose a new one.
+    </p>
+    <div style="background:#000;border-radius:16px;padding:20px;text-align:center;margin-bottom:24px;">
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;margin:0 0 8px;">Your reset code</p>
+      <p style="color:#ff6a3d;font-size:32px;font-weight:bold;letter-spacing:0.1em;margin:0;">${opts.code}</p>
+    </div>
+    <p style="color:rgba(255,255,255,0.4);font-size:13px;margin:0;">This code expires in 1 hour. If you didn't request a password reset, you can ignore this email — your password won't change.</p>
+  `)
+}
+
+export function adminInviteEmailHtml(opts: { name: string; code: string }): string {
+  return emailShell(`
+    <p style="color:#fff;font-size:18px;font-weight:bold;margin:0 0 8px;">You've been set up as a Faith Hoopers admin</p>
+    <p style="color:rgba(255,255,255,0.6);font-size:14px;line-height:1.5;margin:0 0 24px;">
+      Hi ${escapeHtml(opts.name)}, an administrator account has been created for you on the Faith Hoopers platform.
+      Use the code below at the link to set your password and get started.
+    </p>
+    <div style="background:#000;border-radius:16px;padding:20px;text-align:center;margin-bottom:24px;">
+      <p style="color:rgba(255,255,255,0.4);font-size:11px;letter-spacing:0.05em;text-transform:uppercase;margin:0 0 8px;">Your setup code</p>
+      <p style="color:#ff6a3d;font-size:32px;font-weight:bold;letter-spacing:0.1em;margin:0;">${opts.code}</p>
+    </div>
+    <p style="color:rgba(255,255,255,0.4);font-size:13px;margin:0;">Go to Faith Hoopers → Forgot password, enter this email and code to set your password. This code expires in 24 hours.</p>
   `)
 }
 

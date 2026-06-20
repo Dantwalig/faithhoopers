@@ -1,13 +1,70 @@
 import { PrismaClient } from '@prisma/client'
 import { Role, SessionType } from '../lib/enums'
 import bcrypt from 'bcryptjs'
+import { sendEmail, adminInviteEmailHtml } from '../lib/email/send'
+import { generateResetCode, newVerificationExpiry } from '../lib/auth/verification'
 
 const prisma = new PrismaClient()
+
+// Real admin accounts for the people who'll actually run the platform.
+// These get created with no usable password — instead they're emailed a
+// setup code and use the "Forgot password" flow (/forgot-password) to set
+// their own password. Re-running the seed will NOT resend the email to an
+// admin who has already set their password (passwordSet: true), so it's
+// safe to run this multiple times.
+const REAL_ADMINS = [
+  { name: 'Joshua Kacyira', email: 'joshuakacyira@gmail.com' },
+  { name: 'Faith Hoopers', email: 'faithhoopers@gmail.com' },
+  { name: 'Daniel G. Ntwali', email: 'danielgntwali@gmail.com' },
+]
 
 async function main() {
   console.log('🌱 Seeding database...')
 
-  // Create admin
+  // Create/invite the real admin accounts.
+  for (const { name, email: rawEmail } of REAL_ADMINS) {
+    const email = rawEmail.trim().toLowerCase()
+    const existing = await prisma.user.findUnique({ where: { email } })
+
+    if (existing?.passwordSet) {
+      console.log(`  ↪ Admin ${email} already has a password set — skipping invite.`)
+      continue
+    }
+
+    const code = generateResetCode()
+    const expiresAt = newVerificationExpiry() // 24h — this is a one-time setup link
+    const placeholderPassword = await bcrypt.hash(Math.random().toString(36), 10)
+
+    await prisma.user.upsert({
+      where: { email },
+      update: {
+        role: Role.ADMIN,
+        emailVerified: true,
+        resetCode: code,
+        resetCodeExpiresAt: expiresAt,
+      },
+      create: {
+        name,
+        email,
+        password: placeholderPassword,
+        role: Role.ADMIN,
+        emailVerified: true,
+        passwordSet: false,
+        resetCode: code,
+        resetCodeExpiresAt: expiresAt,
+      },
+    })
+
+    const { sent } = await sendEmail({
+      to: email,
+      subject: 'Set up your Faith Hoopers admin account',
+      html: adminInviteEmailHtml({ name, code }),
+    })
+
+    console.log(`  ↪ Admin invite ${sent ? 'sent' : 'NOT sent (RESEND_API_KEY not set)'} to ${email} — code: ${code}`)
+  }
+
+  // Demo/test admin
   const adminPassword = await bcrypt.hash('admin123', 12)
   const admin = await prisma.user.upsert({
     where: { email: 'admin@faithhoopers.com' },
@@ -195,6 +252,10 @@ async function main() {
   })
 
   console.log('✅ Seed complete!')
+  console.log('\n👤 Real admin accounts (setup email sent, no password yet):')
+  for (const { email } of REAL_ADMINS) {
+    console.log(`  ${email.trim().toLowerCase()} — check inbox, use "Forgot password" with the code to set a password`)
+  }
   console.log('\n🔑 Test accounts (all pre-verified, ready to sign in):')
   console.log('  Admin:       admin@faithhoopers.com / admin123')
   console.log('  Coach:       coach.james@faithhoopers.com / coach123')
