@@ -29,37 +29,34 @@ enum Gender {
 }
 
 model User {
+  // Identity — most useful for browsing in Supabase dashboard
   id            String    @id @default(cuid())
+  role          Role      @default(PLAYER)
   name          String
   email         String    @unique
-  password      String
-  role          Role      @default(PLAYER)
   phone         String?
+  emailVerified Boolean   @default(false)
+  passwordSet   Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // Email verification
-  emailVerified             Boolean   @default(false)
+  // Sensitive / internal fields
+  password                  String
   verificationCode          String?
   verificationCodeExpiresAt DateTime?
-
-  // False for accounts auto-created on someone else's behalf (e.g. a parent
-  // created automatically when their child registers) until that person
-  // verifies their email and sets their own password.
-  passwordSet   Boolean   @default(true)
-
-  // Forgot/reset password
-  resetCode             String?
-  resetCodeExpiresAt    DateTime?
+  resetCode                 String?
+  resetCodeExpiresAt        DateTime?
 
   // Relations
-  player        Player?
-  coach         Coach?
-  facilitator   Facilitator?
-  parent        Parent?
-  sentMessages  Message[] @relation("SentMessages")
+  player           Player?
+  coach            Coach?
+  facilitator      Facilitator?
+  parent           Parent?
+  sentMessages     Message[] @relation("SentMessages")
   receivedMessages Message[] @relation("ReceivedMessages")
 
+  @@index([verificationCode])
+  @@index([resetCode])
   @@map("users")
 }
 

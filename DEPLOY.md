@@ -116,10 +116,10 @@ Still in the terminal inside the `hoops` folder:
    npm run db:seed
    ```
    This also creates (or re-checks) three real admin accounts — joshuakacyira@gmail.com,
-   faithhoopers@gmail.com, and danielgntwali@gmail.com — and emails each of them a setup code
-   (requires `RESEND_API_KEY` to actually be set, otherwise the code is only logged to your
-   terminal). They activate their account at **Forgot password** on the login page: enter their
-   email, then the code from the email, then choose a password. Safe to re-run `db:seed` later —
+   faithhoopers@gmail.com, and danielgntwali@gmail.com — and emails each of them a "set password"
+   link (requires `RESEND_API_KEY` to actually be set, otherwise the link is only logged to your
+   terminal). They activate their account by clicking that link and choosing a password — no need
+   to visit "Forgot password" separately. Safe to re-run `db:seed` later —
    it skips anyone who's already set a password.
    You should see:
    ```
@@ -153,7 +153,7 @@ Without this, devotional verse text must be entered manually. With it, the verse
 
 ## STEP 5B — Set Up Email (Required for Signup Verification)
 
-When someone registers, they get an email with a 6-digit code to verify their address —
+When someone registers, they get an email with a link to verify their address —
 without this set up, that email never sends and nobody can finish signing up.
 
 1. Go to **[resend.com](https://resend.com)** → sign up (free tier: 100 emails/day, 3,000/month)
@@ -258,13 +258,14 @@ signs up, they enter their parent's name/email/phone right there in the same for
 account is created automatically. The parent gets an email to verify and set their own password.
 This also means a parent never needs a separate signup: if a second child later registers with
 the same parent email, they're linked to the same parent account instead of creating a duplicate.
-3. Check their email for a 6-digit verification code and enter it at `/verify`
-4. Log in at `/login`
+3. Click the verify link sent to their email — their account activates and they land on their dashboard automatically
+4. Or log in any time afterward at `/login`
 
 If a player adds a parent's email during signup and that parent doesn't already have an account,
-one is created automatically — the parent gets their own email with a code, and sets their own
-password the first time they verify. If a sibling registers later with the same parent email,
-they're automatically linked to that same parent account (no duplicate parent accounts).
+one is created automatically — the parent gets their own email with a "set password" link, and
+clicking it lets them choose a password and activates their account in one step. If a sibling
+registers later with the same parent email, they're automatically linked to that same parent
+account (no duplicate parent accounts).
 
 ### Creating your first real Admin
 
@@ -326,7 +327,7 @@ needs — only the direct connection does.
 → Check `RESEND_API_KEY` and `EMAIL_FROM` are set in Vercel's environment variables, that your sending domain is verified in Resend, and check the spam folder. Until a domain is verified, some inboxes (especially Gmail) may silently filter emails from Resend's shared `onboarding@resend.dev` address.
 
 **"Please verify your email before signing in"**
-→ The account hasn't entered its 6-digit code yet. Go to `/verify`, enter the email, and use "Resend code" if the original email didn't arrive.
+→ The account hasn't clicked its verify link yet. Go to `/verify`, enter the email, and use "Resend link" if the original email didn't arrive.
 
 ---
 

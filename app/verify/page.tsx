@@ -1,79 +1,77 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 
-type Step = 'code' | 'password' | 'done'
+type Status = 'checking' | 'verified' | 'error' | 'awaiting'
 
 export default function VerifyPage() {
   return (
     <Suspense fallback={null}>
-      <VerifyForm />
+      <VerifyContent />
     </Suspense>
   )
 }
 
-function VerifyForm() {
+function VerifyContent() {
   const searchParams = useSearchParams()
-  const router = useRouter()
+  const token = searchParams.get('token')
 
+  // No token in the URL — this is someone who just registered (or followed
+  // an old link) landing here to wait for / resend the email.
+  const [status, setStatus] = useState<Status>(token ? 'checking' : 'awaiting')
   const [email, setEmail] = useState(searchParams.get('email') || '')
-  const [code, setCode] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [step, setStep] = useState<Step>('code')
   const [error, setError] = useState('')
   const [info, setInfo] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [countdown, setCountdown] = useState(5)
 
-  async function handleVerifyCode(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setInfo('')
-    setLoading(true)
+  // Auto-verify as soon as the page loads with a token.
+  useEffect(() => {
+    if (!token) return
 
-    const res = await fetch('/api/verify-email', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code }),
-    })
-    const data = await res.json()
-    setLoading(false)
+    let cancelled = false
+    ;(async () => {
+      try {
+        const res = await fetch('/api/verify-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+        const data = await res.json()
+        if (cancelled) return
 
-    if (!res.ok) {
-      setError(data.error || 'Verification failed.')
+        if (!res.ok) {
+          setError(data.error || 'This link is invalid or has expired.')
+          if (data.email) setEmail(data.email)
+          setStatus('error')
+          return
+        }
+
+        setStatus('verified')
+      } catch {
+        if (!cancelled) {
+          setError('Something went wrong. Please try again.')
+          setStatus('error')
+        }
+      }
+    })()
+
+    return () => { cancelled = true }
+  }, [token])
+
+  // Count down, then send the now-signed-in user to their dashboard.
+  useEffect(() => {
+    if (status !== 'verified') return
+    if (countdown <= 0) {
+      window.location.href = '/dashboard'
       return
     }
-
-    setStep(data.needsPassword ? 'password' : 'done')
-  }
-
-  async function handleSetPassword(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
-    }
-    setLoading(true)
-
-    const res = await fetch('/api/set-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code, newPassword }),
-    })
-    const data = await res.json()
-    setLoading(false)
-
-    if (!res.ok) {
-      setError(data.error || 'Could not set password.')
-      return
-    }
-
-    setStep('done')
-  }
+    const t = setTimeout(() => setCountdown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [status, countdown])
 
   async function handleResend() {
     if (!email) {
@@ -81,14 +79,14 @@ function VerifyForm() {
       return
     }
     setError('')
-    setLoading(true)
+    setResending(true)
     await fetch('/api/verify-email/resend', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     })
-    setLoading(false)
-    setInfo('A new code has been sent if that email is registered.')
+    setResending(false)
+    setInfo('A new verification link has been sent if that email is registered and unverified.')
   }
 
   return (
@@ -111,80 +109,89 @@ function VerifyForm() {
         </div>
 
         <div className="bg-brand-coal rounded-3xl border border-white/5 p-8">
-          {step === 'code' && (
-            <>
-              <h1 className="font-display text-2xl font-bold text-white mb-1">Verify your email</h1>
-              <p className="text-ink-400 text-sm mb-6">Enter the 6-digit code we emailed you.</p>
+          {status === 'checking' && (
+            <div className="text-center py-6">
+              <div className="w-10 h-10 mx-auto mb-4 rounded-full border-2 border-court-500 border-t-transparent animate-spin" />
+              <h1 className="font-display text-xl font-bold text-white mb-1">Verifying your email…</h1>
+              <p className="text-ink-400 text-sm">Just a moment.</p>
+            </div>
+          )}
 
-              {error && (
-                <div className="mb-4 rounded-xl bg-red-900/30 border border-red-800 px-4 py-3 text-sm text-red-300">{error}</div>
-              )}
+          {status === 'verified' && (
+            <div className="text-center py-4">
+              <p className="text-4xl mb-3">🎉</p>
+              <h1 className="font-display text-2xl font-bold text-white mb-2">Account verified!</h1>
+              <p className="text-ink-400 text-sm mb-6">
+                Taking you to your dashboard in {countdown}…
+              </p>
+              <a href="/dashboard" className="w-full btn-primary py-3 rounded-2xl text-base font-semibold inline-block">
+                Go now
+              </a>
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="text-center py-4">
+              <p className="text-4xl mb-3">⚠️</p>
+              <h1 className="font-display text-xl font-bold text-white mb-2">Verification failed</h1>
+              <p className="text-ink-400 text-sm mb-6">{error}</p>
+
               {info && (
-                <div className="mb-4 rounded-xl bg-court-900/30 border border-court-700 px-4 py-3 text-sm text-court-300">{info}</div>
+                <div className="mb-4 rounded-xl bg-court-900/30 border border-court-700 px-4 py-3 text-sm text-court-300 text-left">{info}</div>
               )}
 
-              <form onSubmit={handleVerifyCode} className="space-y-4">
+              <div className="space-y-3 text-left">
                 <div>
                   <label className="label text-white/60">Email address</label>
                   <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                     className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
                     placeholder="you@example.com"/>
                 </div>
-                <div>
-                  <label className="label text-white/60">Verification code</label>
-                  <input required value={code} onChange={e => setCode(e.target.value)} maxLength={6} inputMode="numeric"
-                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30 text-center text-2xl tracking-[0.3em] font-bold"
-                    placeholder="••••••"/>
-                </div>
-                <button type="submit" disabled={loading} className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
-                  {loading ? 'Verifying…' : 'Verify email'}
+                <button onClick={handleResend} disabled={resending} type="button"
+                  className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
+                  {resending ? 'Sending…' : 'Resend verification link'}
                 </button>
-              </form>
+              </div>
 
-              <button onClick={handleResend} disabled={loading} type="button"
-                className="mt-4 w-full text-center text-sm text-white/40 hover:text-white transition-colors">
-                Didn't get a code? Resend
-              </button>
-            </>
+              <p className="mt-6 text-center text-sm text-white/40">
+                <Link href="/login" className="text-brand-orange hover:text-court-400 font-medium">Back to sign in</Link>
+              </p>
+            </div>
           )}
 
-          {step === 'password' && (
-            <>
-              <h1 className="font-display text-2xl font-bold text-white mb-1">Set your password</h1>
-              <p className="text-ink-400 text-sm mb-6">Your email is verified — now choose a password for your account.</p>
+          {status === 'awaiting' && (
+            <div className="text-center py-4">
+              <p className="text-4xl mb-3">📬</p>
+              <h1 className="font-display text-2xl font-bold text-white mb-2">Check your email</h1>
+              <p className="text-ink-400 text-sm mb-6">
+                We sent a verification link to {email ? <span className="text-white">{email}</span> : 'your inbox'}.
+                Click it to activate your account.
+              </p>
 
               {error && (
-                <div className="mb-4 rounded-xl bg-red-900/30 border border-red-800 px-4 py-3 text-sm text-red-300">{error}</div>
+                <div className="mb-4 rounded-xl bg-red-900/30 border border-red-800 px-4 py-3 text-sm text-red-300 text-left">{error}</div>
+              )}
+              {info && !error && (
+                <div className="mb-4 rounded-xl bg-court-900/30 border border-court-700 px-4 py-3 text-sm text-court-300 text-left">{info}</div>
               )}
 
-              <form onSubmit={handleSetPassword} className="space-y-4">
+              <div className="space-y-3 text-left">
                 <div>
-                  <label className="label text-white/60">New password</label>
-                  <input type="password" required minLength={8} value={newPassword} onChange={e => setNewPassword(e.target.value)}
+                  <label className="label text-white/60">Email address</label>
+                  <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                     className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                    placeholder="Min 8 characters"/>
+                    placeholder="you@example.com"/>
                 </div>
-                <div>
-                  <label className="label text-white/60">Confirm password</label>
-                  <input type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                    placeholder="Repeat password"/>
-                </div>
-                <button type="submit" disabled={loading} className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
-                  {loading ? 'Saving…' : 'Set password & activate account'}
+                <button onClick={handleResend} disabled={resending} type="button"
+                  className="w-full rounded-2xl border border-white/10 py-3 text-base font-semibold text-white hover:bg-white/5 transition-colors">
+                  {resending ? 'Sending…' : "Didn't get it? Resend link"}
                 </button>
-              </form>
-            </>
-          )}
+              </div>
 
-          {step === 'done' && (
-            <div className="text-center py-4">
-              <p className="text-4xl mb-3">🎉</p>
-              <h1 className="font-display text-2xl font-bold text-white mb-2">Welcome to Faith Hoopers!</h1>
-              <p className="text-ink-400 text-sm mb-6">Your account is active. You're all set to sign in.</p>
-              <button onClick={() => router.push('/login')} className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
-                Continue to sign in
-              </button>
+              <p className="mt-6 text-center text-sm text-white/40">
+                Already verified?{' '}
+                <Link href="/login" className="text-brand-orange hover:text-court-400 font-medium">Sign in</Link>
+              </p>
             </div>
           )}
         </div>

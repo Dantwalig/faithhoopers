@@ -3,8 +3,8 @@ import { prisma } from '@/lib/db/prisma'
 import bcrypt from 'bcryptjs'
 import { Role } from '@/lib/enums'
 import { z } from 'zod'
-import { sendEmail, verificationEmailHtml } from '@/lib/email/send'
-import { generateVerificationCode, newVerificationExpiry } from '@/lib/auth/verification'
+import { sendEmail, verificationEmailHtml, setPasswordEmailHtml, getAppUrl } from '@/lib/email/send'
+import { generateVerificationToken, newVerificationExpiry, generateResetToken, newInviteExpiry } from '@/lib/auth/verification'
 
 const registerSchema = z
   .object({
@@ -66,8 +66,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'An account with this email already exists.' }, { status: 409 })
     }
 
+    const appUrl = getAppUrl()
     const hashedPassword = await bcrypt.hash(password, 12)
-    const code = generateVerificationCode()
+    const token = generateVerificationToken()
     const expiresAt = newVerificationExpiry()
 
     if (role === 'PLAYER') {
@@ -77,11 +78,11 @@ export async function POST(req: NextRequest) {
         let parentUser = await prisma.user.findUnique({ where: { email: parentEmail } })
         if (!parentUser) {
           // Auto-create a placeholder parent account. They have no usable
-          // password yet (passwordSet: false) — they'll set one the first
-          // time they verify their email.
+          // password yet (passwordSet: false) — they set one the first time
+          // they click their "set password" link, which also verifies them.
           const tempPass = await bcrypt.hash(Math.random().toString(36), 10)
-          const parentCode = generateVerificationCode()
-          const parentExpiresAt = newVerificationExpiry()
+          const parentToken = generateResetToken()
+          const parentExpiresAt = newInviteExpiry()
 
           parentUser = await prisma.user.create({
             data: {
@@ -91,8 +92,8 @@ export async function POST(req: NextRequest) {
               phone: parentPhone,
               role: Role.PARENT,
               passwordSet: false,
-              verificationCode: parentCode,
-              verificationCodeExpiresAt: parentExpiresAt,
+              resetCode: parentToken,
+              resetCodeExpiresAt: parentExpiresAt,
               parent: { create: {} },
             },
             include: { parent: true },
@@ -101,7 +102,11 @@ export async function POST(req: NextRequest) {
           await sendEmail({
             to: parentEmail,
             subject: `${name} added you as their parent on Faith Hoopers`,
-            html: verificationEmailHtml({ name: parentName || 'there', code: parentCode, isParentInvite: true }),
+            html: setPasswordEmailHtml({
+              name: parentName || 'there',
+              link: `${appUrl}/reset-password?token=${parentToken}&context=invite`,
+              reason: 'parent',
+            }),
           })
         }
         // Whether newly created or pre-existing, link this child to that parent.
@@ -116,7 +121,7 @@ export async function POST(req: NextRequest) {
           password: hashedPassword,
           phone,
           role: Role.PLAYER,
-          verificationCode: code,
+          verificationCode: token,
           verificationCodeExpiresAt: expiresAt,
           player: {
             create: {
@@ -132,7 +137,7 @@ export async function POST(req: NextRequest) {
       await prisma.user.create({
         data: {
           name, email, password: hashedPassword, phone, role: Role.COACH,
-          verificationCode: code,
+          verificationCode: token,
           verificationCodeExpiresAt: expiresAt,
           coach: { create: { gender } },
         },
@@ -141,7 +146,7 @@ export async function POST(req: NextRequest) {
       await prisma.user.create({
         data: {
           name, email, password: hashedPassword, phone, role: Role.FACILITATOR,
-          verificationCode: code,
+          verificationCode: token,
           verificationCodeExpiresAt: expiresAt,
           facilitator: { create: { gender } },
         },
@@ -151,7 +156,7 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       to: email,
       subject: 'Verify your email — Faith Hoopers',
-      html: verificationEmailHtml({ name, code }),
+      html: verificationEmailHtml({ name, link: `${appUrl}/verify?token=${token}` }),
     })
 
     return NextResponse.json({ success: true, email }, { status: 201 })

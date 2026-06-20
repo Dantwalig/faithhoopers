@@ -35,12 +35,21 @@ function LoginForm() {
     })
 
     if (res?.error) {
-      if (res.error === 'UNVERIFIED' || res.error === 'NEEDS_PASSWORD') {
+      if (res.error === 'UNVERIFIED') {
         setError(
           <>
             Please verify your email before signing in.{' '}
             <Link href={`/verify?email=${encodeURIComponent(email)}`} className="underline font-medium">
-              Verify now
+              Resend verification link
+            </Link>
+          </>
+        )
+      } else if (res.error === 'NEEDS_PASSWORD') {
+        setError(
+          <>
+            You need to set a password before signing in.{' '}
+            <Link href={`/forgot-password?email=${encodeURIComponent(email)}`} className="underline font-medium">
+              Get a set-password link
             </Link>
           </>
         )
@@ -81,7 +90,7 @@ function LoginForm() {
 
           {justRegistered && !error && (
             <div className="mb-4 rounded-xl bg-court-900/30 border border-court-700 px-4 py-3 text-sm text-court-300">
-              Account created! Check your email for a verification code before signing in.
+              Account created! Check your email for a verification link before signing in.
             </div>
           )}
 

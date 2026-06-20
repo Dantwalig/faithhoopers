@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db/prisma'
 import { z } from 'zod'
-import { sendEmail, verificationEmailHtml } from '@/lib/email/send'
-import { generateVerificationCode, newVerificationExpiry } from '@/lib/auth/verification'
+import { sendEmail, verificationEmailHtml, getAppUrl } from '@/lib/email/send'
+import { generateVerificationToken, newVerificationExpiry } from '@/lib/auth/verification'
 
 const schema = z.object({ email: z.string().email() })
 
-// POST /api/verify-email/resend — issue a fresh code if the old one expired
-// or never arrived.
+// POST /api/verify-email/resend — issue a fresh verification link if the
+// old one expired or never arrived. Only applies to self-registered
+// accounts (players/coaches/facilitators) — auto-created parent/admin
+// accounts use the "set password" link instead (see /forgot-password).
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -19,22 +21,24 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.findUnique({ where: { email } })
     // Don't reveal whether the email exists — respond the same either way.
-    if (!user || (user.emailVerified && user.passwordSet)) {
+    // Also skip accounts that don't use this flow (already verified, or no
+    // password set yet, which means they should use the set-password link).
+    if (!user || user.emailVerified || !user.passwordSet) {
       return NextResponse.json({ success: true })
     }
 
-    const code = generateVerificationCode()
+    const token = generateVerificationToken()
     const expiresAt = newVerificationExpiry()
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { verificationCode: code, verificationCodeExpiresAt: expiresAt },
+      data: { verificationCode: token, verificationCodeExpiresAt: expiresAt },
     })
 
     await sendEmail({
       to: user.email,
-      subject: 'Your new verification code — Faith Hoopers',
-      html: verificationEmailHtml({ name: user.name, code, isParentInvite: !user.passwordSet }),
+      subject: 'Your new verification link — Faith Hoopers',
+      html: verificationEmailHtml({ name: user.name, link: `${getAppUrl()}/verify?token=${token}` }),
     })
 
     return NextResponse.json({ success: true })

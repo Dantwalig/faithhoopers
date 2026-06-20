@@ -9,7 +9,7 @@ A full-stack faith-based basketball platform built with **Next.js 14**, **Prisma
 | Module | Who can use it |
 |---|---|
 | **Registration** | Players (gender, age 13–19, health notes, auto-creates linked parent account), Coaches, Facilitators — there's no standalone Parent signup |
-| **Email verification** | Everyone — 6-digit code by email after signup; auto-created parent accounts set their password during verification |
+| **Email verification** | Everyone — a verify link by email after signup; auto-created parent/admin accounts get a set-password link instead |
 | **Schedule** | All roles — Admins, Coaches & Facilitators can create sessions |
 | **Attendance** | Admins, Coaches & Facilitators mark; Players & Parents view |
 | **Devotionals** | Admin creates (with Bible API auto-fetch); all roles read |
@@ -137,7 +137,9 @@ faith-hoopers/
 │   │   └── parent/                # Parent pages
 │   ├── login/
 │   ├── register/
-│   ├── verify/                    # Enter verification code / set password
+│   ├── verify/                    # Auto-verifies via emailed link, shows success
+│   ├── forgot-password/           # Request a reset link
+│   ├── reset-password/            # Set a new/first password via emailed link
 │   └── page.tsx                   # Landing page
 ├── components/
 │   ├── layout/

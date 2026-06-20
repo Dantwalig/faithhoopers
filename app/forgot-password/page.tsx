@@ -1,11 +1,9 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-
-type Step = 'request' | 'reset' | 'done'
 
 export default function ForgotPasswordPage() {
   return (
@@ -17,21 +15,13 @@ export default function ForgotPasswordPage() {
 
 function ForgotPasswordForm() {
   const searchParams = useSearchParams()
-  const router = useRouter()
 
   const [email, setEmail] = useState(searchParams.get('email') || '')
-  const [code, setCode] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [step, setStep] = useState<Step>('request')
-  const [error, setError] = useState('')
-  const [info, setInfo] = useState('')
+  const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  async function handleRequestCode(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setError('')
-    setInfo('')
     setLoading(true)
 
     await fetch('/api/forgot-password', {
@@ -41,49 +31,7 @@ function ForgotPasswordForm() {
     })
 
     setLoading(false)
-    setStep('reset')
-    setInfo('If that email has an account, a reset code is on its way.')
-  }
-
-  async function handleResetPassword(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match.')
-      return
-    }
-    setLoading(true)
-
-    const res = await fetch('/api/reset-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code, newPassword }),
-    })
-    const data = await res.json()
-    setLoading(false)
-
-    if (!res.ok) {
-      setError(data.error || 'Could not reset password.')
-      return
-    }
-
-    setStep('done')
-  }
-
-  async function handleResend() {
-    if (!email) {
-      setError('Enter your email first.')
-      return
-    }
-    setError('')
-    setLoading(true)
-    await fetch('/api/forgot-password', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    })
-    setLoading(false)
-    setInfo('A new code has been sent if that email is registered.')
+    setSent(true)
   }
 
   return (
@@ -106,16 +54,12 @@ function ForgotPasswordForm() {
         </div>
 
         <div className="bg-brand-coal rounded-3xl border border-white/5 p-8">
-          {step === 'request' && (
+          {!sent ? (
             <>
               <h1 className="font-display text-2xl font-bold text-white mb-1">Forgot password</h1>
-              <p className="text-ink-400 text-sm mb-6">Enter your email and we'll send you a reset code.</p>
+              <p className="text-ink-400 text-sm mb-6">Enter your email and we'll send you a link to reset it.</p>
 
-              {error && (
-                <div className="mb-4 rounded-xl bg-red-900/30 border border-red-800 px-4 py-3 text-sm text-red-300">{error}</div>
-              )}
-
-              <form onSubmit={handleRequestCode} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="label text-white/60">Email address</label>
                   <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
@@ -123,7 +67,7 @@ function ForgotPasswordForm() {
                     placeholder="you@example.com"/>
                 </div>
                 <button type="submit" disabled={loading} className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
-                  {loading ? 'Sending…' : 'Send reset code'}
+                  {loading ? 'Sending…' : 'Send reset link'}
                 </button>
               </form>
 
@@ -132,65 +76,18 @@ function ForgotPasswordForm() {
                 <Link href="/login" className="text-brand-orange hover:text-court-400 font-medium">Sign in</Link>
               </p>
             </>
-          )}
-
-          {step === 'reset' && (
-            <>
-              <h1 className="font-display text-2xl font-bold text-white mb-1">Enter your code</h1>
-              <p className="text-ink-400 text-sm mb-6">Check your email for the 6-digit code, then choose a new password.</p>
-
-              {error && (
-                <div className="mb-4 rounded-xl bg-red-900/30 border border-red-800 px-4 py-3 text-sm text-red-300">{error}</div>
-              )}
-              {info && !error && (
-                <div className="mb-4 rounded-xl bg-court-900/30 border border-court-700 px-4 py-3 text-sm text-court-300">{info}</div>
-              )}
-
-              <form onSubmit={handleResetPassword} className="space-y-4">
-                <div>
-                  <label className="label text-white/60">Email address</label>
-                  <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                    placeholder="you@example.com"/>
-                </div>
-                <div>
-                  <label className="label text-white/60">Reset code</label>
-                  <input required value={code} onChange={e => setCode(e.target.value)} maxLength={6} inputMode="numeric"
-                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30 text-center text-2xl tracking-[0.3em] font-bold"
-                    placeholder="••••••"/>
-                </div>
-                <div>
-                  <label className="label text-white/60">New password</label>
-                  <input type="password" required minLength={8} value={newPassword} onChange={e => setNewPassword(e.target.value)}
-                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                    placeholder="Min 8 characters"/>
-                </div>
-                <div>
-                  <label className="label text-white/60">Confirm new password</label>
-                  <input type="password" required value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
-                    className="input bg-brand-black border-white/10 text-white placeholder:text-white/30"
-                    placeholder="Repeat password"/>
-                </div>
-                <button type="submit" disabled={loading} className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
-                  {loading ? 'Resetting…' : 'Reset password'}
-                </button>
-              </form>
-
-              <button onClick={handleResend} disabled={loading} type="button"
-                className="mt-4 w-full text-center text-sm text-white/40 hover:text-white transition-colors">
-                Didn't get a code? Resend
-              </button>
-            </>
-          )}
-
-          {step === 'done' && (
+          ) : (
             <div className="text-center py-4">
-              <p className="text-4xl mb-3">✅</p>
-              <h1 className="font-display text-2xl font-bold text-white mb-2">Password reset</h1>
-              <p className="text-ink-400 text-sm mb-6">You can now sign in with your new password.</p>
-              <button onClick={() => router.push('/login')} className="w-full btn-primary py-3 rounded-2xl text-base font-semibold">
-                Continue to sign in
+              <p className="text-4xl mb-3">📬</p>
+              <h1 className="font-display text-2xl font-bold text-white mb-2">Check your email</h1>
+              <p className="text-ink-400 text-sm mb-6">
+                If an account exists for {email ? <span className="text-white">{email}</span> : 'that address'}, a reset link is on its way. It expires in 1 hour.
+              </p>
+              <button onClick={() => setSent(false)} type="button"
+                className="w-full rounded-2xl border border-white/10 py-3 text-base font-semibold text-white hover:bg-white/5 transition-colors mb-3">
+                Use a different email
               </button>
+              <Link href="/login" className="text-brand-orange hover:text-court-400 font-medium text-sm">Back to sign in</Link>
             </div>
           )}
         </div>
