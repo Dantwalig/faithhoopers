@@ -13,8 +13,8 @@ const registerSchema = z
     password: z.string().min(8),
     role: z.enum(['PLAYER', 'COACH', 'FACILITATOR']),
     phone: z.string().optional(),
-    // Player-specific
-    gender: z.enum(['MALE', 'FEMALE']).optional(),
+    // Gender (required for all roles)
+    gender: z.preprocess((v) => (v === '' ? undefined : v), z.enum(['MALE', 'FEMALE']).optional()),
     age: z.string().optional(),
     medicalNotes: z.string().max(2000).optional(),
     // Parent contact (collected during a player's signup)
@@ -23,10 +23,10 @@ const registerSchema = z
     parentPhone: z.string().optional(),
   })
   .superRefine((data, ctx) => {
+    if (!data.gender) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select a gender.', path: ['gender'] })
+    }
     if (data.role === 'PLAYER') {
-      if (!data.gender) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select a gender.', path: ['gender'] })
-      }
       const ageNum = data.age ? parseInt(data.age, 10) : NaN
       if (!data.age || Number.isNaN(ageNum) || ageNum < 13 || ageNum > 19) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Please select an age between 13 and 19.', path: ['age'] })
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
           name, email, password: hashedPassword, phone, role: Role.COACH,
           verificationCode: code,
           verificationCodeExpiresAt: expiresAt,
-          coach: { create: {} },
+          coach: { create: { gender } },
         },
       })
     } else if (role === 'FACILITATOR') {
@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
           name, email, password: hashedPassword, phone, role: Role.FACILITATOR,
           verificationCode: code,
           verificationCodeExpiresAt: expiresAt,
-          facilitator: { create: {} },
+          facilitator: { create: { gender } },
         },
       })
     }

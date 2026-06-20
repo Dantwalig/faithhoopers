@@ -260,10 +260,34 @@ one is created automatically — the parent gets their own email with a code, an
 password the first time they verify. If a sibling registers later with the same parent email,
 they're automatically linked to that same parent account (no duplicate parent accounts).
 
-To **remove the demo accounts** from production:
+### Creating your first real Admin
+
+There's no "Admin" option on the signup form on purpose — it's not something anyone should be able
+to grant themselves. To make someone an admin:
+
+1. Have that person register normally at `/register` (any role — Player, Coach, or Facilitator all
+   work, since the next step changes their role anyway) and verify their email as usual
+2. On your computer, in the project folder, with your `.env` pointed at the **live** database
+   (same `DATABASE_URL`/`DIRECT_URL` you put in Vercel):
+   ```bash
+   npm run admin:promote -- their-email@example.com
+   ```
+3. You'll see a confirmation like `✅ "Josh Kacyira" (josh@...) is now an Admin.` — they can log in
+   immediately, no need to wait on anything else
+
+This is safer than editing the Supabase Table Editor by hand — becoming an Admin actually requires
+three columns to change together (`role`, `emailVerified`, `passwordSet`), and the script does all
+three atomically instead of risking a half-finished edit that locks someone out.
+
+### Removing the demo accounts
+
+Once you have at least one real admin set up (above), clean out the test data:
 1. Go to your Supabase dashboard → **Table Editor** → `users` table
-2. Delete the rows with `admin@faithhoopers.com`, `coach.james@faithhoopers.com`, etc.
-3. Create your real admin account through `/register` (selecting Player role first, then manually changing it to Admin in the Supabase `users` table → `role` column). You'll also need to manually set `emailVerified` to `true` and `passwordSet` to `true` for that row in Supabase so you can log in immediately without waiting on the verification email.
+2. Delete the rows for `admin@faithhoopers.com`, `coach.james@faithhoopers.com`,
+   `facilitator.grace@faithhoopers.com`, `david.mukamana@faithhoopers.com`,
+   `esther.mukamana@faithhoopers.com`, and `sarah.mukamana@email.com` — these all have
+   publicly-known passwords (they're sitting in this repo's `seed.ts`) and shouldn't stay live
+   once real people are registering
 
 ---
 

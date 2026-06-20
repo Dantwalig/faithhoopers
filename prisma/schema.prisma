@@ -84,6 +84,7 @@ model Coach {
   userId        String    @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   specialty     String?   // e.g. "Defense", "Offense", "Conditioning"
+  gender        Gender?
   createdAt     DateTime  @default(now())
 
   sessions      Session[] @relation("CoachSessions")
@@ -96,6 +97,7 @@ model Facilitator {
   userId        String    @unique
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   specialty     String?
+  gender        Gender?
   createdAt     DateTime  @default(now())
 
   @@map("facilitators")

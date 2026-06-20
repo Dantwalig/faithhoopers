@@ -79,6 +79,9 @@ npm run db:push
 
 # Seed with demo data and test accounts
 npm run db:seed
+
+# Promote an already-registered user to Admin (no Admin option on /register on purpose)
+npm run admin:promote -- their-email@example.com
 ```
 
 ### 4. Run the development server

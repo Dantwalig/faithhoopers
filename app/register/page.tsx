@@ -139,28 +139,28 @@ export default function RegisterPage() {
               </div>
             </div>
 
+            {/* Gender (required for every role) */}
+            <div>
+              <label className="label text-white/70">Gender</label>
+              <select name="gender" required value={form.gender} onChange={handleChange}
+                className="input bg-brand-black border-white/10 text-white">
+                <option value="" disabled>Select…</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
+            </div>
+
             {/* Player-specific fields */}
             {form.role === 'PLAYER' && (
               <div className="rounded-xl border border-white/10 p-4 space-y-4">
                 <p className="text-xs font-medium text-ink-400 uppercase tracking-wide">Player details</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="label text-white/70">Gender</label>
-                    <select name="gender" required value={form.gender} onChange={handleChange}
-                      className="input bg-brand-black border-white/10 text-white">
-                      <option value="" disabled>Select…</option>
-                      <option value="MALE">Boy</option>
-                      <option value="FEMALE">Girl</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="label text-white/70">Age</label>
-                    <select name="age" required value={form.age} onChange={handleChange}
-                      className="input bg-brand-black border-white/10 text-white">
-                      <option value="" disabled>Select…</option>
-                      {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
-                    </select>
-                  </div>
+                <div>
+                  <label className="label text-white/70">Age</label>
+                  <select name="age" required value={form.age} onChange={handleChange}
+                    className="input bg-brand-black border-white/10 text-white">
+                    <option value="" disabled>Select…</option>
+                    {AGE_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
                 </div>
                 <div>
                   <label className="label text-white/70">Pre-existing health conditions or injuries (optional)</label>
