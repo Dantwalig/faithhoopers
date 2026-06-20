@@ -82,8 +82,8 @@ export default function RegisterPage() {
             {/* Role selector */}
             <div>
               <label className="label text-white/70">I am a…</label>
-              <div className="grid grid-cols-2 gap-2">
-                {(['PLAYER','PARENT','COACH','FACILITATOR'] as const).map(r => (
+              <div className="grid grid-cols-3 gap-2">
+                {(['PLAYER','COACH','FACILITATOR'] as const).map(r => (
                   <label key={r} className={`flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition-colors ${
                     form.role === r
                       ? 'border-brand-orange bg-brand-orange/10 text-brand-orange'

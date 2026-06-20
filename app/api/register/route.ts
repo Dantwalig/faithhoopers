@@ -11,7 +11,7 @@ const registerSchema = z
     name: z.string().min(2),
     email: z.string().email(),
     password: z.string().min(8),
-    role: z.enum(['PLAYER', 'PARENT', 'COACH', 'FACILITATOR']),
+    role: z.enum(['PLAYER', 'COACH', 'FACILITATOR']),
     phone: z.string().optional(),
     // Player-specific
     gender: z.enum(['MALE', 'FEMALE']).optional(),
@@ -52,8 +52,13 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    const { name, email, password, role, phone, gender, age, medicalNotes,
-            parentName, parentEmail, parentPhone } = parsed.data
+    const { name, password, role, phone, gender, age, medicalNotes,
+            parentName, parentPhone } = parsed.data
+
+    // Normalize emails so "Mom@Gmail.com" and "mom@gmail.com" are treated as
+    // the same account — this is what makes sibling-linking actually reliable.
+    const email = parsed.data.email.trim().toLowerCase()
+    const parentEmail = parsed.data.parentEmail?.trim().toLowerCase() || ''
 
     // Check existing
     const existing = await prisma.user.findUnique({ where: { email } })
@@ -139,15 +144,6 @@ export async function POST(req: NextRequest) {
           verificationCode: code,
           verificationCodeExpiresAt: expiresAt,
           facilitator: { create: {} },
-        },
-      })
-    } else if (role === 'PARENT') {
-      await prisma.user.create({
-        data: {
-          name, email, password: hashedPassword, phone, role: Role.PARENT,
-          verificationCode: code,
-          verificationCodeExpiresAt: expiresAt,
-          parent: { create: {} },
         },
       })
     }

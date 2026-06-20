@@ -8,7 +8,7 @@ A full-stack faith-based basketball platform built with **Next.js 14**, **Prisma
 
 | Module | Who can use it |
 |---|---|
-| **Registration** | Players (gender, age 13–19, health notes, optional auto-linked parent), Coaches, Facilitators, Parents |
+| **Registration** | Players (gender, age 13–19, health notes, auto-creates linked parent account), Coaches, Facilitators — there's no standalone Parent signup |
 | **Email verification** | Everyone — 6-digit code by email after signup; auto-created parent accounts set their password during verification |
 | **Schedule** | All roles — Admins, Coaches & Facilitators can create sessions |
 | **Attendance** | Admins, Coaches & Facilitators mark; Players & Parents view |
@@ -231,8 +231,11 @@ role (separate `Facilitator` table) for reporting purposes, but use the same scr
 ## Households & Siblings
 
 There's no separate "household" model — a household *is* a `Parent` record, and any number of
-`Player` records can point at the same `parentId`. When a player registers with a parent email
-that already belongs to an existing parent account (whether self-registered or auto-created by an
-earlier sibling), they're automatically linked to that same parent — no duplicates. The Admin →
-Players page shows a "+N sibling(s)" badge next to the parent's name when more than one child
-shares that parent.
+`Player` records can point at the same `parentId`. Parents never sign up on their own; the only
+way a `Parent` account is created is automatically, the moment a player enters that parent's email
+during the player's own signup. When a player registers with a parent email that already belongs
+to an existing parent account (created earlier by a sibling), they're automatically linked to that
+same parent — no duplicates, no second invite email. The Admin → Players page shows a "+N
+sibling(s)" badge next to the parent's name when more than one child shares that parent.
+Email matching is case-insensitive and trimmed, so "Mom@Gmail.com" and "mom@gmail.com " both
+resolve to the same account.

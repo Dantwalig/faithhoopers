@@ -22,7 +22,8 @@ export async function POST(req: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid input: ' + parsed.error.issues[0].message }, { status: 400 })
     }
-    const { email, code, newPassword } = parsed.data
+    const { code, newPassword } = parsed.data
+    const email = parsed.data.email.trim().toLowerCase()
 
     const user = await prisma.user.findUnique({ where: { email } })
     if (!user) {

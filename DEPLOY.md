@@ -236,7 +236,13 @@ but the email step is skipped (logged to the server console instead), so nobody 
 Once deployed, tell your coaches, facilitators, players, and parents to:
 
 1. Go to `https://your-vercel-url.vercel.app/register`
-2. Select their role (Player, Parent, Coach, or Facilitator) and fill in the form
+2. Select their role (Player, Coach, or Facilitator) and fill in the form
+
+Parents don't register themselves — there's no "Parent" option on the form. When a player
+signs up, they enter their parent's name/email/phone right there in the same form, and a parent
+account is created automatically. The parent gets an email to verify and set their own password.
+This also means a parent never needs a separate signup: if a second child later registers with
+the same parent email, they're linked to the same parent account instead of creating a duplicate.
 3. Check their email for a 6-digit verification code and enter it at `/verify`
 4. Log in at `/login`
 
